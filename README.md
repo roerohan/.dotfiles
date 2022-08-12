@@ -3,23 +3,23 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <!-- <a href="https://github.com/roerohan/Template">
+  <!-- <a href="https://github.com/roerohan/.dotfiles">
     <img src="https://project-logo.png" alt="Logo" width="80">
   </a> -->
 
-  <h3 align="center">YOUR_TITLE</h3>
+  <h3 align="center">.dotfiles</h3>
 
   <p align="center">
-    YOUR_SHORT_DESCRIPTION
+    Configuration files for my Linux system.
     <br />
-    <a href="https://github.com/roerohan/Template"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/roerohan/.dotfiles"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/roerohan/Template">View Demo</a>
+    <a href="https://github.com/roerohan/.dotfiles">View Demo</a>
     ·
-    <a href="https://github.com/roerohan/Template/issues">Report Bug</a>
+    <a href="https://github.com/roerohan/.dotfiles/issues">Report Bug</a>
     ·
-    <a href="https://github.com/roerohan/Template/issues">Request Feature</a>
+    <a href="https://github.com/roerohan/.dotfiles/issues">Request Feature</a>
   </p>
 </p>
 
@@ -44,20 +44,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-Here's a blank template to get started:
-**To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`roerohan`, `repo`
-
-
-### Built With
-
-* []()
-* []()
-* []()
-
-
+This repository consists of configuration files for my Linux system.
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -76,7 +63,7 @@ npm install npm@latest -g
  
 1. Clone the Repo
 ```sh
-git clone https://github.com/roerohan/Template.git
+git clone https://github.com/roerohan/.dotfiles.git
 ```
 2. Install NPM packages
 ```sh
@@ -97,7 +84,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-See the [open issues](https://github.com/roerohan/Template/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/roerohan/.dotfiles/issues) for a list of proposed features (and known issues).
 
 
 
@@ -120,10 +107,8 @@ You are requested to follow the contribution guidelines specified in [CONTRIBUTI
 Distributed under the MIT License. See [`LICENSE`](./LICENSE) for more information.
 
 
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [roerohan-url]: https://roerohan.github.io
-[issues-shield]: https://img.shields.io/github/issues/roerohan/Template.svg?style=flat-square
-[issues-url]: https://github.com/roerohan/Template/issues
+[issues-shield]: https://img.shields.io/github/issues/roerohan/.dotfiles.svg?style=flat-square
+[issues-url]: https://github.com/roerohan/.dotfiles/issues
