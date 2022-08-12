@@ -1,0 +1,279 @@
+# vim:filetype=i3
+
+# Colors and Customization {{{
+# Set colors from xrdb. Colors must be set in xrdb before i3 config is loaded.
+set_from_resource $base00 color0  #000000
+set_from_resource $base01 color18 #000000
+set_from_resource $base02 color19 #000000
+set_from_resource $base03 color8  #000000
+set_from_resource $base04 color20 #000000
+set_from_resource $base05 color7  #000000
+set_from_resource $base06 color21 #000000
+set_from_resource $base07 color15 #000000
+set_from_resource $base08 color1  #000000
+set_from_resource $base09 color16 #000000
+set_from_resource $base0A color11 #000000
+set_from_resource $base0B color2  #000000
+set_from_resource $base0C color14 #000000
+set_from_resource $base0D color12 #000000
+set_from_resource $base0E color5  #000000
+set_from_resource $base0F color17 #000000
+
+#                       class   border  backgr. text indicator
+client.focused          $base05 $base05 $base00 $base05
+client.focused_inactive $base03 $base03 $base05 $base03
+client.unfocused        $base03 $base03 $base05 $base00
+client.urgent           $base01 $base01 $base05 $base00
+
+default_border pixel 1
+default_floating_border pixel 1
+
+new_window pixel 5
+new_float  pixel 5
+
+font pango:scientifica 8
+# }}}
+
+# Variables {{{
+set $mod Mod1
+set $sup Mod4
+set $terminal kitty
+set $workspace1  "1"
+set $workspace2  "2"
+set $workspace3  "3"
+set $workspace4  "4"
+set $workspace5  "5"
+set $workspace6  "6"
+set $workspace7  "7"
+set $workspace8  "8"
+set $workspace9  "9"
+set $workspace10 "10"
+set $workspace11 "11"
+set $workspace12 "12"
+set $workspace13 "13"
+set $workspace14 "14"
+set $workspace15 "15"
+set $workspace16 "16"
+set $workspace17 "17"
+set $workspace18 "18"
+set $workspace19 "19"
+set $workspace20 "20"
+set $workspace21 "21"
+set $workspace22 "22"
+# }}}
+
+# Window Movement (excluding workspaces) {{{
+
+# terminals
+bindsym $mod+Return  exec --no-startup-id $terminal
+bindsym $sup+Return  exec --no-startup-id ~/scripts/selectterm
+
+# kill
+bindsym $sup+Shift+q kill
+
+# focus
+bindsym $sup+Left  focus left
+bindsym $sup+Down  focus down
+bindsym $sup+Up    focus up
+bindsym $sup+Right focus right
+
+# movement
+bindsym $sup+Shift+Left  move left
+bindsym $sup+Shift+Down  move down
+bindsym $sup+Shift+Up    move up
+bindsym $sup+Shift+Right move right
+
+# splitting
+bindsym $sup+t split toggle
+bindsym $sup+h split h
+bindsym $sup+v split v
+
+# fullscreen
+bindsym $sup+f fullscreen toggle
+
+# container layout
+bindsym $sup+s layout stacking
+bindsym $sup+w layout tabbed
+bindsym $sup+e layout toggle split
+
+# floating
+floating_modifier $mod
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+space focus mode_toggle
+
+# parent/child focus
+bindsym $mod+a focus parent
+bindsym $mod+d focus child
+
+# resizing
+bindsym $mod+Shift+Left  resize shrink width  1 px or 1 ppt
+bindsym $mod+Shift+Down  resize grow   height 1 px or 1 ppt
+bindsym $mod+Shift+Up    resize shrink height 1 px or 1 ppt
+bindsym $mod+Shift+Right resize grow   width  1 px or 1 ppt
+# }}}
+
+# Gaps {{{
+gaps inner 10
+gaps outer 0
+
+bindsym $mod+minus       gaps inner all minus 5
+bindsym $mod+plus        gaps inner all plus  5
+bindsym $mod+Shift+minus gaps outer all minus 5
+bindsym $mod+Shift+plus  gaps outer all plus  5
+# }}}
+
+# Workspaces (including window movement) {{{
+
+# movement
+bindsym $sup+Shift+1   move container to workspace $workspace1
+bindsym $sup+Shift+2   move container to workspace $workspace2
+bindsym $sup+Shift+3   move container to workspace $workspace3
+bindsym $sup+Shift+4   move container to workspace $workspace4
+bindsym $sup+Shift+5   move container to workspace $workspace5
+bindsym $sup+Shift+6   move container to workspace $workspace6
+bindsym $sup+Shift+7   move container to workspace $workspace7
+bindsym $sup+Shift+8   move container to workspace $workspace8
+bindsym $sup+Shift+9   move container to workspace $workspace9
+bindsym $sup+Shift+0   move container to workspace $workspace10
+bindsym $sup+Shift+F1  move container to workspace $workspace11
+bindsym $sup+Shift+F2  move container to workspace $workspace12
+bindsym $sup+Shift+F3  move container to workspace $workspace13
+bindsym $sup+Shift+F4  move container to workspace $workspace14
+bindsym $sup+Shift+F5  move container to workspace $workspace15
+bindsym $sup+Shift+F6  move container to workspace $workspace16
+bindsym $sup+Shift+F7  move container to workspace $workspace17
+bindsym $sup+Shift+F8  move container to workspace $workspace18
+bindsym $sup+Shift+F9  move container to workspace $workspace19
+bindsym $sup+Shift+F10 move container to workspace $workspace20
+bindsym $sup+Shift+F11 move container to workspace $workspace21
+bindsym $sup+Shift+F12 move container to workspace $workspace22
+
+# active workspace
+bindsym $mod+1   workspace $workspace1
+bindsym $mod+2   workspace $workspace2
+bindsym $mod+3   workspace $workspace3
+bindsym $mod+4   workspace $workspace4
+bindsym $mod+5   workspace $workspace5
+bindsym $mod+6   workspace $workspace6
+bindsym $mod+7   workspace $workspace7
+bindsym $mod+8   workspace $workspace8
+bindsym $mod+9   workspace $workspace9
+bindsym $mod+0   workspace $workspace10
+bindsym $mod+F1  workspace $workspace11
+bindsym $mod+F2  workspace $workspace12
+bindsym $mod+F3  workspace $workspace13
+bindsym $mod+F4  workspace $workspace14
+bindsym $mod+F5  workspace $workspace15
+bindsym $mod+F6  workspace $workspace16
+bindsym $mod+F7  workspace $workspace17
+bindsym $mod+F8  workspace $workspace18
+bindsym $mod+F9  workspace $workspace19
+bindsym $mod+F10 workspace $workspace20
+bindsym $mod+F11 workspace $workspace21
+bindsym $mod+F12 workspace $workspace22
+
+bindsym $sup+1   workspace $workspace1
+bindsym $sup+2   workspace $workspace2
+bindsym $sup+3   workspace $workspace3
+bindsym $sup+4   workspace $workspace4
+bindsym $sup+5   workspace $workspace5
+bindsym $sup+6   workspace $workspace6
+bindsym $sup+7   workspace $workspace7
+bindsym $sup+8   workspace $workspace8
+bindsym $sup+9   workspace $workspace9
+bindsym $sup+0   workspace $workspace10
+bindsym $sup+F1  workspace $workspace11
+bindsym $sup+F2  workspace $workspace12
+bindsym $sup+F3  workspace $workspace13
+bindsym $sup+F4  workspace $workspace14
+bindsym $sup+F5  workspace $workspace15
+bindsym $sup+F6  workspace $workspace16
+bindsym $sup+F7  workspace $workspace17
+bindsym $sup+F8  workspace $workspace18
+bindsym $sup+F9  workspace $workspace19
+bindsym $sup+F10 workspace $workspace20
+bindsym $sup+F11 workspace $workspace21
+bindsym $sup+F12 workspace $workspace22
+
+
+workspace $workspace1  output LVDS1
+workspace $workspace2  output LVDS1
+workspace $workspace3  output LVDS1
+workspace $workspace4  output LVDS1
+workspace $workspace5  output LVDS1
+workspace $workspace6  output LVDS1
+workspace $workspace7  output LVDS1
+workspace $workspace8  output LVDS1
+workspace $workspace9  output LVDS1
+workspace $workspace10 output LVDS1
+workspace $workspace11 output DP1
+workspace $workspace12 output DP1
+workspace $workspace13 output DP1
+workspace $workspace14 output DP1
+workspace $workspace15 output DP1
+workspace $workspace16 output DP1
+workspace $workspace17 output DP1
+workspace $workspace18 output DP1
+workspace $workspace19 output DP1
+workspace $workspace20 output DP1
+workspace $workspace21 output DP1
+workspace $workspace22 output DP1
+
+
+# Moving workspaces between screens 
+bindsym $sup+shift+l move workspace to output right
+bindsym $sup+shift+h move workspace to output left
+# }}}
+
+# Other Keybindings {{{
+bindsym Print        exec --no-startup-id flameshot gui
+bindsym $sup+Shift+s exec --no-startup-id flameshot gui
+bindsym $mod+l       exec --no-startup-id i3lock
+bindsym $mod+r       exec --no-startup-id ~/scripts/record
+bindsym $mod+End     exec --no-startup-id ~/scripts/calnotify.sh
+bindsym $sup+Shift+e exec --no-startup-id "i3-nagbar -t warning -m 'Exit?' -b 'Yes, exit i3' 'i3-msg exit'"
+bindsym $sup+Shift+r exec --no-startup-id "i3-msg restart"
+bindsym $sup+space   exec --no-startup-id "rofi -show run -lines 10 -width 40"
+bindsym $sup+d   exec --no-startup-id "rofi -show run -lines 10 -width 40"
+bindsym $mod+k       exec --no-startup-id ~/scripts/selectkill
+bindsym $mod+o       open
+bindsym $mod+Shift+c reload
+# }}}
+
+# Pulse Audio Controls {{{
+bindsym XF86AudioMute        exec --no-startup-id pactl set-sink-mute 0 toggle
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl -- set-sink-volume 0 -5%
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl -- set-sink-volume 0 +5%
+
+bindsym Control+Escape exec --no-startup-id pactl set-sink-mute 0 toggle
+bindsym Control+F0     exec --no-startup-id pactl -- set-sink-volume 0 -5%
+bindsym Control+F2     exec --no-startup-id pactl -- set-sink-volume 0 +5%
+bindsym Control+F3     exec --no-startup-id pactl -- set-sink-volume 0 +5%
+# }}}
+
+# Media Player Controls {{{
+bindsym XF86AudioStop exec --no-startup-id mpc clear && /home/reed/scripts/killm.sh ncmpcpp
+bindsym XF86AudioNext exec --no-startup-id mpc next
+bindsym XF86AudioPlay exec --no-startup-id mpc toggle
+bindsym XF86AudioPrev exec --no-startup-id mpc prev
+
+# if there's no XF86Audio buttons, control+arrow is good
+bindsym Control+Up    exec --no-startup-id mpc clear && /home/reed/scripts/killm.sh ncmpcpp
+bindsym Control+Right exec --no-startup-id mpc next
+bindsym Control+Down  exec --no-startup-id mpc toggle
+bindsym Control+Left  exec --no-startup-id mpc prev
+
+# }}}
+
+# Autostart {{{
+exec_always --no-startup-id ~/.config/polybar/launch.sh
+exec        --no-startup-id xset r rate 280 40
+exec        --no-startup-id unclutter # Remove mouse when not used
+exec        --no-startup-id nm-applet
+exec        --no-startup-id mousetrap -t 7 # Hide mouse after 7 seconds
+exec        --no-startup-id dunst
+exec_always --no-startup-id picom --corner-radius 0.5
+exec        --no-startup-id flameshot
+exec        --no-startup-id nitrogen --restore
+# exec        --no-startup-id i3-msg 'workspace 4:Web; exec /usr/bin/google-chrome-stable' # Autostart applications on i3 load
+# }}}
