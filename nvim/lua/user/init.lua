@@ -184,9 +184,14 @@ plugins = {
 
     -- Extend LSP configuration
     lsp = {
+      formatting = {
+        disabled = {
+          "null-ls",
+        }
+      },
       -- enable servers that you already have installed without lsp-installer
       servers = {
-        -- "pyright"
+        "pyright",
         "tsserver"
       },
       -- easily add or disable built in mappings added during LSP attaching
@@ -233,6 +238,8 @@ plugins = {
                     -- second key is the lefthand side of the map
                     ["<C-s>"] = { ":w!<cr>", desc = "Save File" },
                     ["<C-`>"] = { "<cmd>ToggleTerm<cr>", desc = "Toggle terminal" },
+                    ["<C-u>"] = { "<C-u>zz", desc = "Half page up and center." },
+                    ["<C-d>"] = { "<C-d>zz", desc = "Half page down and center." },
                   },
                   t = {
                     -- setting a mapping to false will disable it
