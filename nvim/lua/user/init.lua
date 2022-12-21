@@ -37,6 +37,15 @@ local config = {
   options = {
     opt = {
       relativenumber = true, -- sets vim.opt.relativenumber
+      hlsearch = false, -- sets vim.opt.hlsearch
+      incsearch = true, -- sets vim.opt.incsearch
+      scrolloff = 8, -- sets vim.opt.scrolloff
+      smartindent = true, -- sets vim.opt.smartindent
+
+      tabstop = 4,
+      softtabstop = 4,
+      shiftwidth = 4,
+      expandtab = true,
     },
     g = {
       mapleader = " ", -- sets vim.g.mapleader
@@ -236,10 +245,19 @@ local config = {
     -- first key is the mode
     n = {
       -- second key is the lefthand side of the map
+      ["n"] = { "nzzzv", desc = "Search next item and center." },
+      ["N"] = { "Nzzzv", desc = "Search previous item and center." },
+
       ["<C-s>"] = { ":w!<cr>", desc = "Save File" },
       ["<C-`>"] = { "<cmd>ToggleTerm<cr>", desc = "Toggle terminal" },
       ["<C-u>"] = { "<C-u>zz", desc = "Half page up and center." },
       ["<C-d>"] = { "<C-d>zz", desc = "Half page down and center." },
+
+      ["<leader>s"] = { [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], desc = "Replace current word." },
+    },
+    v = {
+      ["J"] = { ":m '>+1<CR>gv=gv", desc = "Move chunk down." },
+      ["K"] = { ":m '<-2<CR>gv=gv", desc = "Move chunk down." }
     },
     t = {
       -- setting a mapping to false will disable it
