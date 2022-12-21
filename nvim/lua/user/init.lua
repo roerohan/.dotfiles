@@ -102,6 +102,7 @@ local config = {
       --     require("lsp_signature").setup()
       --   end,
       -- },
+      { "mbbill/undotree" },
     },
     -- All other entries override the setup() call for default plugins
     ["null-ls"] = function(config)
@@ -130,7 +131,7 @@ local config = {
       return config -- return final config table
     end,
     treesitter = {
-      ensure_installed = { "lua" },
+      ensure_installed = { "help", "javascript", "typescript", "c", "lua", "rust" },
     },
     ["nvim-lsp-installer"] = {
       ensure_installed = { "sumneko_lua", "tsserver" },
@@ -149,7 +150,7 @@ local config = {
           hide_gitignored = true,
         },
       }
-    }
+    },
   },
 
   -- LuaSnip Options
@@ -254,10 +255,11 @@ local config = {
       ["<C-d>"] = { "<C-d>zz", desc = "Half page down and center." },
 
       ["<leader>s"] = { [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], desc = "Replace current word." },
+      ["<leader>u"] = { ":UndotreeToggle<cr>", desc = "Toggle undotree." },
     },
     v = {
       ["J"] = { ":m '>+1<CR>gv=gv", desc = "Move chunk down." },
-      ["K"] = { ":m '<-2<CR>gv=gv", desc = "Move chunk down." }
+      ["K"] = { ":m '<-2<CR>gv=gv", desc = "Move chunk down." },
     },
     t = {
       -- setting a mapping to false will disable it
