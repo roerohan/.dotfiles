@@ -1,0 +1,10 @@
+[user]
+	email = roerohan@gmail.com
+	name = Rohan Mukherjee
+	signingkey = 4E979C9B37364374
+[includeIf "gitdir:~/Documents/Repos/dyte/"]
+	path = ~/.gitconfig-dyte
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+[commit]
+	gpgsign = true
