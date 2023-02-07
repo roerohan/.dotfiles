@@ -1,11 +1,14 @@
 #!/bin/bash
 
-mv ~/.config/nvim ~/.config/nvimbackup
+CONFIG_DIR=~/.config
+
+# Delete all nvim backups that are older than a month
+find $CONFIG_DIR -regex "$CONFIG_DIR/nvimbackup.*" -type d -mtime +30 -exec echo {} \; 
+mv "$CONFIG_DIR/nvim" "$CONFIG_DIR/nvimbackup-$( echo $RANDOM )"
 
 git clone git@github.com:AstroNvim/AstroNvim.git ~/.config/nvim
 
-mkdir -p ~/.config/nvim/lua/user
-cp -r ./lua/user/* ~/.config/nvim/lua/user/
+mkdir -p "$CONFIG_DIR/nvim/lua/user"
+cp -r ./lua/user/* "$CONFIG_DIR/nvim/lua/user/"
 
-nvim +PackerSync
-
+nvim  --headless -c 'autocmd User PackerComplete quitall' -c 'PackerSync'
