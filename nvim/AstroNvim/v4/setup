@@ -1,0 +1,13 @@
+#!/bin/bash
+
+CONFIG_DIR=~/.config
+
+# Delete all nvim backups that are older than a month
+find $CONFIG_DIR -regex "$CONFIG_DIR/nvimbackup.*" -type d -mtime +30 -exec echo {} \; 
+mv "$CONFIG_DIR/nvim" "$CONFIG_DIR/nvimbackup-$( echo $RANDOM )"
+
+git clone --depth 1 git@github.com:AstroNvim/template.git ~/.config/nvim
+
+rm -f "$CONFIG_DIR/nvim/lua/user"
+ln -s $(pwd)/lua/user "$CONFIG_DIR/nvim/lua/user"
+
