@@ -128,6 +128,7 @@ automatically-unhide-macos-hidden-apps = false
     alt-8 = 'workspace 8'
     alt-9 = 'workspace 9'
     alt-b = 'workspace B'
+    alt-m = 'workspace M'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
     alt-shift-1 = 'move-node-to-workspace 1'
@@ -140,6 +141,7 @@ automatically-unhide-macos-hidden-apps = false
     alt-shift-8 = 'move-node-to-workspace 8'
     alt-shift-9 = 'move-node-to-workspace 9'
     alt-shift-b = 'move-node-to-workspace B'
+    alt-shift-m = 'move-node-to-workspace M'
 
     alt-shift-f = 'fullscreen'
 
@@ -202,3 +204,8 @@ run = 'move-node-to-workspace 3'
 [[on-window-detected]]
 if.app-id = 'net.whatsapp.WhatsApp'
 run = 'move-node-to-workspace 4'
+
+# Workspace M
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace M'
