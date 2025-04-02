@@ -171,10 +171,16 @@ automatically-unhide-macos-hidden-apps = false
     up = 'volume up'
     shift-down = ['volume set 0', 'mode main']
 
+# Workspace 1
 [[on-window-detected]]
 if.app-id = 'company.thebrowser.Browser'
 run = 'move-node-to-workspace 1'
 
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace 1'
+
+# Workspace 2
 [[on-window-detected]]
 if.app-id = 'dev.warp.Warp-Stable'
 run = 'move-node-to-workspace 2'
@@ -183,10 +189,16 @@ run = 'move-node-to-workspace 2'
 if.app-id = 'com.github.wez.wezterm'
 run = 'move-node-to-workspace 2'
 
+# Workspace 3
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace 3'
 
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi'
+run = 'move-node-to-workspace 3'
+
+# Workspace 4
 [[on-window-detected]]
 if.app-id = 'net.whatsapp.WhatsApp'
 run = 'move-node-to-workspace 4'
