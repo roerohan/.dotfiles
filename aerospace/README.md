@@ -12,5 +12,5 @@ brew install --cask nikitabobko/tap/aerospace
 
 ```sh
 mkdir -p ~/.config/aerospace/
-ln -s ${pwd}/aerospace.toml ~/.config/aerospace/aerospace.toml
+ln -s "`pwd`/aerospace.toml" ~/.config/aerospace/aerospace.toml
 ```
