@@ -14,3 +14,9 @@ brew install --cask ghostty
 mkdir -p ~/.config/ghostty/
 ln -s "`pwd`/config" ~/.config/ghostty/config
 ```
+
+## Supplementary tools
+
+```sh
+brew install tmux
+```
