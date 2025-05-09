@@ -1,0 +1,18 @@
+[user]
+    email = roerohan@gmail.com
+    name = Rohan Mukherjee
+    signingkey = BDD25E868DD4C855
+[includeIf "gitdir:~/Documents/Repos/dyte/"]
+    path = ~/.gitconfig-dyte
+[includeIf "gitdir:~/Documents/Repos/cloudflare/"]
+    path = ~/.gitconfig-cf
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+[commit]
+    gpgsign = true
+[push]
+    autoSetupRemote = true
+[init]
+    defaultBranch = main
+[include]
+        path = /Users/rmukherjee/.local/share/cloudflare-warp-certs/gitconfig

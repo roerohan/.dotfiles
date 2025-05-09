@@ -1,0 +1,8 @@
+[user]
+        email = rmukherjee@cloudflare.com
+        name = Rohan Mukherjee
+        signingkey = 1BA9D88FEFBFA684
+[url "git@github.com:"]
+        insteadOf = https://github.com/
+[commit]
+        gpgsign = true

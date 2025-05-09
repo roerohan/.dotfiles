@@ -1,0 +1,8 @@
+[user]
+        email = rohan@dyte.io
+        name = Rohan Mukherjee
+        signingkey = 25F16B07F78CAD81
+[url "git@github.com:"]
+        insteadOf = https://github.com/
+[commit]
+        gpgsign = true
