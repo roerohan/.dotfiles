@@ -12,4 +12,5 @@ brew install tmuxinator
 
 ```sh
 tmuxinator new --local "[project-name]"
+echo 'alias mux="tmuxinator"' >> ~/.zshenv
 ```
