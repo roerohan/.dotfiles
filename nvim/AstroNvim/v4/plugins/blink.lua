@@ -1,5 +1,6 @@
 return { -- override blink.cmp plugin
   "Saghen/blink.cmp",
+  version = "1.*",
   dependencies = {
     {
       'Exafunction/codeium.nvim',
