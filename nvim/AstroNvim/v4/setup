@@ -8,5 +8,5 @@ mv "$CONFIG_DIR/nvim" "$CONFIG_DIR/nvimbackup-$( echo $RANDOM )"
 
 git clone --depth 1 git@github.com:AstroNvim/template.git ~/.config/nvim
 
-rm -f "$CONFIG_DIR/nvim/lua/plugins"
+rm -rf "$CONFIG_DIR/nvim/lua/plugins"
 ln -s `pwd`/plugins "$CONFIG_DIR/nvim/lua"
