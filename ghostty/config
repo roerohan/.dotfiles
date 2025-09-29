@@ -1,5 +1,4 @@
-theme = light:rose-pine-dawn,dark:rose-pine
-
+theme = light:Rose Pine Dawn,dark:Rose Pine
 window-inherit-font-size = true
 window-decoration = false
 shell-integration-features = no-title
