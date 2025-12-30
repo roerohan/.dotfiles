@@ -1,0 +1,33 @@
+#:schema https://docs.jj-vcs.dev/latest/config-schema.json
+
+[user]
+name = "Rohan Mukherjee"
+email = "roerohan@gmail.com"
+
+[ui]
+default-command = "log"
+
+[[--scope]]
+--when.repositories = ["~/Documents/Repos/cloudflare"]
+[--scope.user]
+email = "rmukherjee@cloudflare.com"
+
+[[--scope]]
+--when.repositories = ["~/Documents/Repos/dyte"]
+[--scope.user]
+email = "rohan@dyte.io"
+
+[aliases]
+# Inspired from: https://gist.github.com/thoughtpolice/8f2fd36ae17cd11b8e7bd93a70e31ad6
+
+blame = ["file", "annotate"]
+credit = ["file", "annotate"]
+cat = ["file", "show"]
+
+# Take content from any change, and move it into @. The inverse of 'eject'
+# - jj consume xyz path/to/file`
+consume = ["squash", "--into", "@", "--from"]
+
+# Eject content from @ into any other change. The inverse of 'consume'
+# - jj eject xyz --interactive
+eject = ["squash", "--from", "@", "--into"]
