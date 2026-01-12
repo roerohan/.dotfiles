@@ -31,3 +31,11 @@ consume = ["squash", "--into", "@", "--from"]
 # Eject content from @ into any other change. The inverse of 'consume'
 # - jj eject xyz --interactive
 eject = ["squash", "--from", "@", "--into"]
+
+gp = ["git", "push"]
+gf = ["git", "fetch"]
+bc = ["bookmark", "create"]
+bd = ["bookmark", "delete"]
+
+[remotes.origin]
+auto-track-bookmarks = "*"
