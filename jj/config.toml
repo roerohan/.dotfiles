@@ -6,6 +6,7 @@ email = "roerohan@gmail.com"
 
 [ui]
 default-command = "log"
+editor = "nvim"
 
 [[--scope]]
 --when.repositories = ["~/Documents/Repos/cloudflare"]
@@ -36,6 +37,7 @@ gp = ["git", "push"]
 gf = ["git", "fetch"]
 bc = ["bookmark", "create"]
 bd = ["bookmark", "delete"]
+bm = ["bookmark", "move", "-t", "@-"]
 
 [remotes.origin]
 auto-track-bookmarks = "*"
