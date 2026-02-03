@@ -38,6 +38,7 @@ gf = ["git", "fetch"]
 bc = ["bookmark", "create"]
 bd = ["bookmark", "delete"]
 bm = ["bookmark", "move", "-t", "@-"]
+bt = ["bookmark", "track"]
 
 [remotes.origin]
 auto-track-bookmarks = "*"
