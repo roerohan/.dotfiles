@@ -76,6 +76,16 @@ npm install
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
+### JJ Configuration
+You can configure `jj` by creating a file called `.jjrc` in your home directory. Sample configuration:
+
+```toml
+[ui]
+color = true
+```
+
+For more detailed configuration options, please refer to the official [jj documentation](https://example.com/jj-config).
+
 _For more examples, please refer to the [Documentation](https://example.com)_
 
 
