@@ -76,7 +76,13 @@ npm install
    brew install jj
    ```
 
-2. Configure `jj` with your preferences or default configuration.
+2. Configure `jj` with the default or your preferred configuration. For example:
+
+   ```sh
+   jj config --set my-config
+   ```
+
+   You can find more configuration options in the [jj documentation](https://github.com/martinvonz/jj).
    
    For more details on configuration, refer to the [jj documentation](https://github.com/martinvonz/jj).
 
