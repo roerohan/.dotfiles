@@ -59,7 +59,7 @@ npm install npm@latest -g
 ```
 
 ### Installation
- 
+  
 1. Clone the Repo
 ```sh
 git clone https://github.com/roerohan/.dotfiles.git
@@ -68,6 +68,18 @@ git clone https://github.com/roerohan/.dotfiles.git
 ```sh
 npm install
 ```
+
+### jj Setup
+
+1. Install `jj` by following the official instructions:
+   ```sh
+   brew install jj
+   ```
+
+2. Configure `jj` with your preferences or default configuration.
+   
+   For more details on configuration, refer to the [jj documentation](https://github.com/martinvonz/jj).
+
 
 
 
