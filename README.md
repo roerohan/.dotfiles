@@ -69,6 +69,29 @@ git clone https://github.com/roerohan/.dotfiles.git
 npm install
 ```
 
+### Neovim Configuration
+
+1. **Installation**:
+   - Install Neovim using your package manager. For example:
+     ```sh
+     sudo apt install neovim
+     ```
+
+2. **Configuration**:
+   - Configuration files are located in `~/.config/nvim/init.vim` or `~/.config/nvim/init.lua` for Lua.
+   - Add your preferred settings and plugins.
+
+3. **Plugins**:
+   - Manage plugins using a plugin manager like Packer or vim-plug.
+   - Example with vim-plug:
+     ```vim
+     call plug#begin('~/.vim/plugged')
+     Plug 'neovim/nvim-lspconfig'  " Collection of configurations for the built-in LSP client
+     call plug#end()
+     ```
+
+_For more details, refer to the [Neovim documentation](https://neovim.io/doc/)._
+
 ### jj Setup
 
 1. Install `jj` by following the official instructions:
