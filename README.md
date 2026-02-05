@@ -32,6 +32,7 @@
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
+* [Aerospace](#aerospace)
 * [Usage](#usage)
 * [Roadmap](#roadmap)
 * [Contributing](#contributing)
@@ -84,6 +85,23 @@ npm install
 
 
 <!-- USAGE EXAMPLES -->
+## Aerospace
+
+Aerospace is an i3-like window manager for MacOS.
+
+### Installation
+
+```sh
+brew install --cask nikitabobko/tap/aerospace
+```
+
+### Configuration
+
+```sh
+mkdir -p ~/.config/aerospace/
+ln -s "`pwd`/aerospace.toml" ~/.config/aerospace/aerospace.toml
+```
+
 ## Usage
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
