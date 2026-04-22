@@ -44,6 +44,7 @@
 ## About The Project
 
 This repository consists of configuration files for my Linux system.
+It currently manages dotfiles for various tools including zsh, nvim, tmux, kitty, ghostty, aerospace, i3, rofi, lazygit, and more.
 
 <!-- GETTING STARTED -->
 ## Getting Started
