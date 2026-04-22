@@ -43,7 +43,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repository consists of configuration files for my Linux system.
+This repository consists of configuration files for my Linux system. It currently includes configurations for various development tools including window managers (aerospace, i3), terminal emulators (ghostty, kitty), editors (neovim, micro), terminal multiplexers (tmux), shell customization (zsh), version control tools (jj, lazygit), and various other utilities (polybar, rofi, nitrogen).
 
 <!-- GETTING STARTED -->
 ## Getting Started
