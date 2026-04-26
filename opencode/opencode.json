@@ -31,6 +31,7 @@
       "git status *": "allow",
       "git log *": "allow",
       "git show *": "allow",
+      "git rev-parse *": "allow",
       "pnpm lint *": "allow",
       "pnpm format *": "allow",
       "npm lint *": "allow",
