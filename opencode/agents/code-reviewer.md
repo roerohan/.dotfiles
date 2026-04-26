@@ -7,6 +7,7 @@ tools:
   edit: false
 permission:
   edit: deny
+  lsp: allow
   webfetch: allow
 ---
 You are a code reviewer. Provide actionable feedback on code changes.
