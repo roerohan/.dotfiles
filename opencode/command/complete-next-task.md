@@ -20,7 +20,7 @@ First, invoke the skill tool to detect the VCS:
 skill({ name: 'vcs-detect' })
 ```
 
-Use the detected VCS (jj or git) for all version control operations.
+Use the detected VCS (git or jj) for all version control operations.
 
 ## File Locations
 
@@ -68,7 +68,7 @@ Once found, use **absolute paths** for all file operations:
     3. Spikes/unknowns
     4. Standard features
     5. Polish/cleanup
-- Check recent history (jj: `jj log --limit 10`, git: `git log --oneline -10`)
+- Check recent history (git: `git log --oneline -10`, jj: `jj log --limit 10`)
 
 ### 2. Initialize Progress (if needed)
 
@@ -89,8 +89,8 @@ Started: <YYYY-MM-DD>
 ### 3. Branch Setup
 
 Extract `prdName` from PRD, then:
-- jj: `jj new -m '<prdName>'`
 - git: `git checkout -b <prdName>` (or checkout if exists)
+- jj: `jj new -m '<prdName>'`
 
 ### 4. Implement Task
 
@@ -126,8 +126,8 @@ If you discover a **reusable pattern**, also add to `## Codebase Patterns` at th
 
 ### 8. Commit
 
-- jj: `jj describe -m 'feat(<scope>): <description>' && jj bookmark create <prdName>/<task-id> && jj new`
 - git: `git add -A && git commit -m 'feat(<scope>): <description>'`
+- jj: `jj describe -m 'feat(<scope>): <description>' && jj bookmark create <prdName>/<task-id> && jj new`
 
 Bookmark format: `<prdName>/<task-id>` (e.g., `lib-relay-implementation/types-2`)
 
