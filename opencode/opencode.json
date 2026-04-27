@@ -32,6 +32,7 @@
       "git log *": "allow",
       "git show *": "allow",
       "git rev-parse *": "allow",
+      "git remote get-url *": "allow",
       "pnpm lint *": "allow",
       "pnpm format *": "allow",
       "npm lint *": "allow",
