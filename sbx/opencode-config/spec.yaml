@@ -7,9 +7,21 @@ description: Injects user-level OpenCode configuration into the sandbox
 environment:
   variables:
     PLANNOTATOR_REMOTE: "1"
+    # NODE_EXTRA_CA_CERTS appends to Node's built-in CAs (does not replace).
+    # When the file is absent Node prints a warning and falls back to built-in CAs.
+    NODE_EXTRA_CA_CERTS: /home/agent/.ssl/corp-ca-bundle.pem
 
 commands:
   install:
+    - command: |-
+        if [ -s /home/agent/.ssl/corp-ca-bundle.pem ]; then
+          cp /home/agent/.ssl/corp-ca-bundle.pem /usr/local/share/ca-certificates/corp-ca-bundle.crt &&
+          update-ca-certificates
+        else
+          echo "No corporate CA certs — skipping OS trust store install"
+        fi
+      user: "0"
+      description: Install corporate CA certificates into OS trust store (skipped if absent)
     - command: >-
         cd /home/agent/.config/opencode && npm install
       user: "1000"

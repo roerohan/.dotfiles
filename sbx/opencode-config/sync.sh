@@ -75,3 +75,38 @@ if [ -f "$DATA_SRC/auth.json" ]; then
   cp "$DATA_SRC/auth.json" "$DATA_DEST/auth.json"
   echo "Synced auth.json"
 fi
+
+# Export corporate CA certificates from macOS keychain for sandbox TLS trust
+CERT_DEST="$KIT_DIR/files/home/.ssl"
+mkdir -p "$CERT_DEST"
+CERT_FILE="$CERT_DEST/corp-ca-bundle.pem"
+CERT_COUNT=0
+: > "$CERT_FILE"
+for cert_cn in \
+  "Cloudflare Corporate Zero Trust" \
+  "CFManage Root" \
+  "CFManage Intermediate CA" \
+  "Cloudflare for Teams ECC Certificate Authority"; do
+  pem=$(security find-certificate -a -c "$cert_cn" -p /Library/Keychains/System.keychain 2>/dev/null || true)
+  if [ -n "$pem" ]; then
+    # Skip expired certs
+    expiry=$(echo "$pem" | openssl x509 -noout -enddate 2>/dev/null | sed 's/notAfter=//')
+    if [ -n "$expiry" ]; then
+      exp_epoch=$(date -j -f "%b %d %T %Y %Z" "$expiry" "+%s" 2>/dev/null || echo 0)
+      now_epoch=$(date "+%s")
+      if [ "$exp_epoch" -lt "$now_epoch" ] 2>/dev/null; then
+        echo "Skipping expired cert: $cert_cn (expired $expiry)"
+        continue
+      fi
+    fi
+    printf "# %s\n%s\n\n" "$cert_cn" "$pem" >> "$CERT_FILE"
+    CERT_COUNT=$((CERT_COUNT + 1))
+  fi
+done
+if [ "$CERT_COUNT" -gt 0 ]; then
+  echo "Exported $CERT_COUNT corporate CA cert(s) to $CERT_FILE"
+else
+  rm -f "$CERT_FILE"
+  rmdir "$CERT_DEST" 2>/dev/null || true
+  echo "No corporate CA certs found — skipping cert bundle"
+fi
