@@ -38,6 +38,24 @@ if command -v node >/dev/null 2>&1; then
   echo "Patched opencode.json for yolo mode"
 fi
 
+# Generate .gitconfig with SSH commit signing
+SSH_PUB_KEY=$(cat "$HOME/.ssh/id_ed25519.pub" 2>/dev/null || true)
+if [ -n "$SSH_PUB_KEY" ]; then
+  GIT_USER_NAME=$(git config --global user.name 2>/dev/null || true)
+  GIT_USER_EMAIL=$(git config --global user.email 2>/dev/null || true)
+  cat > "$KIT_DIR/files/home/.gitconfig" <<GITEOF
+[user]
+	name = ${GIT_USER_NAME}
+	email = ${GIT_USER_EMAIL}
+	signingkey = key::${SSH_PUB_KEY}
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
+GITEOF
+  echo "Generated .gitconfig with SSH signing"
+fi
+
 # Sync MCP auth tokens from ~/.local/share/opencode
 DATA_SRC="$HOME/.local/share/opencode"
 DATA_DEST="$KIT_DIR/files/home/.local/share/opencode"
