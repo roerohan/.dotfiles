@@ -32,7 +32,13 @@ if command -v node >/dev/null 2>&1; then
     // Strip trailing commas before } or ]
     raw = raw.replace(/,\s*([\]}])/g, '\$1');
     const config = JSON.parse(raw);
-    config.permission = { '*': 'allow', bash: { '*': 'allow' }, read: { '*': 'allow' }, edit: 'allow', external_directory: { '*': 'allow' } };
+    config.permission = {
+      '*': 'allow',
+      bash: { '*': 'allow', 'cat *opencode*auth*': 'deny', 'cat *mcp-auth*': 'deny', 'cat *auth.json': 'deny' },
+      read: { '*': 'allow', '**/.local/share/opencode/**': 'deny', '**/mcp-auth.json': 'deny', '**/auth.json': 'deny' },
+      edit: 'allow',
+      external_directory: { '*': 'allow', '**/.local/share/opencode/**': 'deny' }
+    };
     fs.writeFileSync(p, JSON.stringify(config, null, 2) + '\n');
   "
   echo "Patched opencode.json for yolo mode"
