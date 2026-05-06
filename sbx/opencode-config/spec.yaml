@@ -1,0 +1,16 @@
+schemaVersion: "1"
+kind: mixin
+name: opencode-config
+displayName: OpenCode User Config
+description: Injects user-level OpenCode configuration into the sandbox
+
+environment:
+  variables:
+    PLANNOTATOR_REMOTE: "1"
+
+commands:
+  install:
+    - command: >-
+        cd /home/agent/.config/opencode && npm install
+      user: "1000"
+      description: Install OpenCode plugin dependencies

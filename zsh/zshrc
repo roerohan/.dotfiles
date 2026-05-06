@@ -210,3 +210,21 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+# Docker Sandbox - OpenCode wrapper
+sbx-opencode() {
+  ~/.config/sbx-kits/opencode-config/sync.sh || return 1
+  # Publish Plannotator port once sandbox is running (retry in background)
+  local sbx_name="opencode-$(basename "${1:-.}")"
+  (
+    for i in $(seq 1 15); do
+      if sbx ls -q 2>/dev/null | grep -q "^${sbx_name}$"; then
+        sbx ports "$sbx_name" --publish 19432:19432 2>/dev/null || true
+        break
+      fi
+      sleep 2
+    done
+  ) &
+  sbx run opencode --kit ~/.config/sbx-kits/opencode-config/ "$@"
+}
+alias sbxoc='sbx-opencode'
