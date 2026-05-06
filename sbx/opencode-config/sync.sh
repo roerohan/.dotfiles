@@ -38,17 +38,23 @@ if command -v node >/dev/null 2>&1; then
   echo "Patched opencode.json for yolo mode"
 fi
 
-# Copy host .gitconfig and patch signing for SSH
-if [ -f "$HOME/.gitconfig" ]; then
-  cp "$HOME/.gitconfig" "$KIT_DIR/files/home/.gitconfig"
-  SSH_PUB_KEY=$(cat "$HOME/.ssh/id_ed25519.pub" 2>/dev/null || true)
-  if [ -n "$SSH_PUB_KEY" ]; then
-    # Override GPG signing key with SSH key
-    git config -f "$KIT_DIR/files/home/.gitconfig" user.signingkey "key::${SSH_PUB_KEY}"
-    git config -f "$KIT_DIR/files/home/.gitconfig" gpg.format ssh
+# Copy host gitconfig files and patch signing for SSH
+SSH_PUB_KEY=$(cat "$HOME/.ssh/id_ed25519.pub" 2>/dev/null || true)
+
+patch_signing() {
+  if [ -n "$SSH_PUB_KEY" ] && git config -f "$1" user.signingkey >/dev/null 2>&1; then
+    git config -f "$1" user.signingkey "key::${SSH_PUB_KEY}"
+    git config -f "$1" gpg.format ssh
   fi
-  echo "Synced .gitconfig with SSH signing"
-fi
+}
+
+for f in "$HOME"/.gitconfig "$HOME"/.gitconfig-*; do
+  [ -f "$f" ] || continue
+  dest="$KIT_DIR/files/home/$(basename "$f")"
+  cp "$f" "$dest"
+  patch_signing "$dest"
+  echo "Synced $(basename "$f")"
+done
 
 # Sync MCP auth tokens from ~/.local/share/opencode
 DATA_SRC="$HOME/.local/share/opencode"
