@@ -244,9 +244,10 @@ sbx-opencode() {
     return
   fi
 
-  # Fresh sandbox: sync config, secrets, and create
+  # Fresh sandbox: sync config, secrets, and load SSH key
   ~/.config/sbx-kits/opencode-config/sync.sh || return 1
   gh auth token 2>/dev/null | sbx secret set -g -f github 2>/dev/null || true
+  ssh-add -l &>/dev/null || ssh-add ~/.ssh/id_ed25519 2>/dev/null || true
 
   # Publish Plannotator port once sandbox is running (retry in background, silenced)
   {
