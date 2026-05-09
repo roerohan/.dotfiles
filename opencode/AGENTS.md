@@ -95,16 +95,13 @@
 
 ## Long-Running Commands And Tmux
 
-- Use the `tmux` skill for dev servers, app servers, file watchers, background logs, interactive consoles, or any command expected to keep running.
-- Do not run servers or watchers directly inside the OpenCode shell unless the user explicitly asks for inline execution.
-- By default, start server-like processes in a new tmux pane in the current session, then poll/read that pane for readiness and logs before continuing the task.
-- Multiple related servers should be placed together using the tmux skill's managed server workflow, reusing the first server window/pane group instead of scattering panes across random windows like confetti with a process table.
-- Prefer `run-or-reuse-pane.sh` for named servers so an existing pane is reused rather than starting duplicate servers on the same port.
-- Use readiness polling (`--wait-for`, `wait-for-text.sh`, or `read-pane.sh`) to detect when the server is ready, then continue the requested work.
-- Keep server panes running when they are useful for testing, log inspection, or user visibility.
-- For long-running one-off tasks that are disposable after completion, run them in the current pane only when they are not servers/watchers; if they were placed in tmux, clean up the pane afterward with the tmux skill.
-- Stop or kill only panes that were created for the current task or are clearly identified by the user. Never kill unrelated user panes.
-- Always report the tmux session, window, pane id, pane title, attach command, and log-capture command after starting a pane.
+- Use the `tmux` skill for servers, watchers, background logs, interactive consoles, containerized services (`docker run`, `docker compose up`), or anything expected to keep running.
+- Do not run servers/watchers inline unless explicitly requested; start them in a new pane in the current session, preferably with `run-or-reuse-pane.sh` to avoid duplicate named servers.
+- Group related servers in the skill's managed server window/panes, poll readiness with `--wait-for`, `wait-for-text.sh`, or `read-pane.sh`, then continue the task.
+- Keep useful server panes running for testing/log inspection; clean up disposable tmux panes after completion.
+- Run one-off Docker/disposable commands inline when they exit on their own and do not need ongoing logs.
+- Only stop panes created for the current task or clearly identified by the user. Never kill unrelated panes.
+- After starting a pane, report session, window, pane id/title, attach command, and log-capture command.
 
 ## Scope Control
 

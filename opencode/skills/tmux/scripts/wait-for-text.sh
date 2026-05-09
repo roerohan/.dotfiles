@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+source "$script_dir/lib.sh"
+
 usage() {
   cat <<'USAGE'
 Usage: wait-for-text.sh --target target-or-title --pattern pattern [options]
@@ -18,13 +22,6 @@ Options:
   -h, --help             Show this help.
 USAGE
 }
-
-die() {
-  printf 'ERROR: %s\n' "$1" >&2
-  exit 1
-}
-
-command -v tmux >/dev/null 2>&1 || die 'tmux was not found in PATH'
 
 target=''
 pattern=''
@@ -44,66 +41,31 @@ while [[ $# -gt 0 ]]; do
     -i|--interval) interval="${2-}"; shift 2 ;;
     -l|--lines) lines="${2-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
-    *) die "unknown option: $1" ;;
+    *) tmux_skill_die "unknown option: $1" ;;
   esac
 done
 
-[[ -n "$target" ]] || die '--target is required'
-[[ -n "$pattern" ]] || die '--pattern is required'
-[[ "$timeout" =~ ^[0-9]+$ ]] || die '--timeout must be an integer number of seconds'
-[[ "$lines" =~ ^[1-9][0-9]*$ ]] || die '--lines must be a positive integer'
+[[ -n "$target" ]] || tmux_skill_die '--target is required'
+[[ -n "$pattern" ]] || tmux_skill_die '--pattern is required'
+tmux_skill_require_nonnegative_int "$timeout" '--timeout'
+tmux_skill_require_positive_int "$lines" '--lines'
+tmux_skill_require_tmux
 
 if [[ -z "$session" ]]; then
-  session="$(tmux display-message -p '#{session_name}' 2>/dev/null || true)"
+  session="$(tmux_skill_current_session)"
 fi
 
-resolve_target() {
-  local query="$1"
-
-  if [[ "$query" == %* ]] && tmux display-message -p -t "$query" '#{pane_id}' >/dev/null 2>&1; then
-    printf '%s\n' "$query"
-    return
-  fi
-
-  if [[ "$query" == *:* ]] && tmux display-message -p -t "$query" '#{pane_id}' >/dev/null 2>&1; then
-    tmux display-message -p -t "$query" '#{pane_id}'
-    return
-  fi
-
-  local list_args=(-a)
-  if [[ -n "$session" ]]; then
-    list_args=(-s -t "$session")
-  fi
-
-  local matches=()
-  while IFS='|' read -r pane_id title; do
-    if [[ "$title" == "$query" ]]; then
-      matches+=("$pane_id")
-    fi
-  done < <(tmux list-panes "${list_args[@]}" -F '#{pane_id}|#{pane_title}')
-
-  if (( ${#matches[@]} == 1 )); then
-    printf '%s\n' "${matches[0]}"
-    return
-  fi
-
-  if (( ${#matches[@]} > 1 )); then
-    die "pane title '$query' is ambiguous; use a pane id"
-  fi
-}
-
-pane_id="$(resolve_target "$target")"
-[[ -n "$pane_id" ]] || die "no pane found for target/title: $target"
+pane_id="$(tmux_skill_resolve_pane_or_die "$target" "$session")"
 
 start_epoch="$(date +%s)"
 deadline=$((start_epoch + timeout))
 pane_text=''
 
 while true; do
-  pane_text="$(tmux capture-pane -p -J -t "$pane_id" -S "-$lines" 2>/dev/null || true)"
+  pane_text="$(tmux_skill_capture_pane "$pane_id" "$lines" 2>/dev/null || true)"
 
   if printf '%s\n' "$pane_text" | grep "$grep_flag" -- "$pattern" >/dev/null 2>&1; then
-    resolved_target="$(tmux display-message -p -t "$pane_id" '#{session_name}:#{window_index}.#{pane_index}')"
+    resolved_target="$(tmux_skill_pane_target "$pane_id")"
     printf 'Found pattern in tmux pane %s (%s)\n' "$pane_id" "$resolved_target"
     exit 0
   fi

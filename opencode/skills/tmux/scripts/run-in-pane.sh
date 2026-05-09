@@ -38,7 +38,6 @@ session=''
 window_prefix='servers'
 max_panes='4'
 cwd=''
-current_window=false
 placement='server-window'
 new_window_name=''
 wait_for=''
@@ -53,8 +52,8 @@ while [[ $# -gt 0 ]]; do
     -w|--window) window_prefix="${2-}"; shift 2 ;;
     -m|--max-panes) max_panes="${2-}"; shift 2 ;;
     -c|--cwd) cwd="${2-}"; shift 2 ;;
-    --current-window) current_window=true; placement='current-window'; shift ;;
-    --server-window) current_window=false; placement='server-window'; shift ;;
+    --current-window) placement='current-window'; shift ;;
+    --server-window) placement='server-window'; shift ;;
     --new-window) new_window_name="${2-}"; placement='new-window'; shift 2 ;;
     --wait-for) wait_for="${2-}"; shift 2 ;;
     --wait-timeout) wait_timeout="${2-}"; shift 2 ;;
@@ -67,8 +66,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ $# -gt 0 ]] || tmux_skill_die 'command is required after --'
-[[ "$max_panes" =~ ^[1-9][0-9]*$ ]] || tmux_skill_die '--max-panes must be a positive integer'
-[[ "$wait_timeout" =~ ^[0-9]+$ ]] || tmux_skill_die '--wait-timeout must be an integer number of seconds'
+tmux_skill_require_positive_int "$max_panes" '--max-panes'
+tmux_skill_require_nonnegative_int "$wait_timeout" '--wait-timeout'
 if [[ -n "$port" ]]; then
   [[ "$port" =~ ^[0-9]+$ ]] || tmux_skill_die '--port must be an integer'
 fi
@@ -92,9 +91,7 @@ fi
 pane_name="$(tmux_skill_sanitize_name "$name")"
 [[ -n "$pane_name" ]] || tmux_skill_die "pane name sanitized to empty: $name"
 
-cmd_string=''
-printf -v cmd_string '%q ' "$@"
-cmd_string="${cmd_string% }"
+cmd_string="$(tmux_skill_shell_join "$@")"
 display_command="$*"
 
 if [[ -n "$port" && "$allow_port_conflict" == false ]]; then
@@ -106,11 +103,8 @@ if [[ -n "$port" && "$allow_port_conflict" == false ]]; then
   fi
 fi
 
-target_window_id=''
-target_window_name=''
-
 if [[ "$placement" == 'current-window' ]]; then
-  current_pane="$(tmux display-message -p '#{pane_id}' 2>/dev/null || true)"
+  current_pane="$(tmux_skill_current_pane)"
   [[ -n "$current_pane" ]] || tmux_skill_die 'could not detect current tmux pane. Run from inside tmux or omit --current-window.'
   pane_id="$(tmux split-window -h -d -P -F '#{pane_id}' -t "$current_pane" -c "$cwd" "$cmd_string")"
   tmux select-layout -t "$(tmux display-message -p -t "$pane_id" '#{window_id}')" even-horizontal >/dev/null 2>&1 || true
@@ -118,40 +112,20 @@ elif [[ "$placement" == 'new-window' ]]; then
   [[ -n "$new_window_name" ]] || tmux_skill_die '--new-window requires a window name'
   pane_id="$(tmux new-window -d -P -F '#{pane_id}' -t "$session:" -n "$new_window_name" -c "$cwd" "$cmd_string")"
 else
-while IFS='|' read -r window_id window_name pane_count; do
-  case "$window_name" in
-    "$window_prefix"|"$window_prefix"-[0-9]*)
-      if (( pane_count < max_panes )); then
-        target_window_id="$window_id"
-        target_window_name="$window_name"
-        break
-      fi
-      ;;
-  esac
-done < <(tmux list-windows -t "$session" -F '#{window_id}|#{window_name}|#{window_panes}')
-
-if [[ -z "$target_window_id" ]]; then
-  next_name="$window_prefix"
-  if tmux list-windows -t "$session" -F '#{window_name}' | grep -Fx -- "$next_name" >/dev/null 2>&1; then
-    index=2
-    while tmux list-windows -t "$session" -F '#{window_name}' | grep -Fx -- "$window_prefix-$index" >/dev/null 2>&1; do
-      index=$((index + 1))
-    done
-    next_name="$window_prefix-$index"
+  IFS='|' read -r choice target_window_id target_window_name < <(tmux_skill_server_window_choice "$session" "$window_prefix" "$max_panes")
+  if [[ "$choice" == 'new' ]]; then
+    pane_id="$(tmux new-window -d -P -F '#{pane_id}' -t "$session:" -n "$target_window_name" -c "$cwd" "$cmd_string")"
+  else
+    pane_id="$(tmux split-window -h -d -P -F '#{pane_id}' -t "$target_window_id" -c "$cwd" "$cmd_string")"
+    tmux select-layout -t "$target_window_id" even-horizontal >/dev/null 2>&1 || true
   fi
-
-  pane_id="$(tmux new-window -d -P -F '#{pane_id}' -t "$session:" -n "$next_name" -c "$cwd" "$cmd_string")"
-else
-  pane_id="$(tmux split-window -h -d -P -F '#{pane_id}' -t "$target_window_id" -c "$cwd" "$cmd_string")"
-  tmux select-layout -t "$target_window_id" even-horizontal >/dev/null 2>&1 || true
-fi
 fi
 
 tmux select-pane -t "$pane_id" -T "$pane_name"
 
-target="$(tmux display-message -p -t "$pane_id" '#{session_name}:#{window_index}.#{pane_index}')"
-window_name="$(tmux display-message -p -t "$pane_id" '#{window_name}')"
-pane_command="$(tmux display-message -p -t "$pane_id" '#{pane_current_command}')"
+target="$(tmux_skill_pane_target "$pane_id")"
+window_name="$(tmux_skill_pane_window "$pane_id")"
+pane_command="$(tmux_skill_pane_command "$pane_id")"
 
 tmux_skill_registry_upsert "$pane_name" "$pane_id" "$target" "$session" "$window_name" "$pane_name" "$cwd" "$cmd_string" "$placement"
 

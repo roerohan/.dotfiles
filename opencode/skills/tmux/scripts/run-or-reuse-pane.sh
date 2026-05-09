@@ -37,6 +37,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ $# -gt 0 ]] || tmux_skill_die 'command is required after --'
+tmux_skill_require_positive_int "$read_lines" '--read-lines'
 if [[ -z "$cwd" ]]; then
   cwd="$PWD"
 fi
@@ -55,9 +56,7 @@ if pane_id="$(tmux_skill_resolve_pane "$name" "")"; then
   if [[ -n "$registry_line" ]]; then
     registry_command="$(printf '%s' "$registry_line" | cut -f8)"
   fi
-  requested_command=''
-  printf -v requested_command '%q ' "$@"
-  requested_command="${requested_command% }"
+  requested_command="$(tmux_skill_shell_join "$@")"
 
   if [[ "$replace" == true && ( "$existing_cwd" != "$cwd" || ( -n "$registry_command" && "$registry_command" != "$requested_command" ) ) ]]; then
     "$script_dir/stop-pane.sh" "$pane_id" --grace 2 >/dev/null || true

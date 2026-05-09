@@ -25,8 +25,24 @@ tmux_skill_current_session() {
   tmux display-message -p '#{session_name}' 2>/dev/null || true
 }
 
-tmux_skill_current_window() {
-  tmux display-message -p '#{session_name}:#{window_index}' 2>/dev/null || true
+tmux_skill_current_pane() {
+  tmux display-message -p '#{pane_id}' 2>/dev/null || true
+}
+
+tmux_skill_require_positive_int() {
+  local value="$1" name="$2"
+  [[ "$value" =~ ^[1-9][0-9]*$ ]] || tmux_skill_die "$name must be a positive integer"
+}
+
+tmux_skill_require_nonnegative_int() {
+  local value="$1" name="$2"
+  [[ "$value" =~ ^[0-9]+$ ]] || tmux_skill_die "$name must be an integer number of seconds"
+}
+
+tmux_skill_shell_join() {
+  local quoted=''
+  printf -v quoted '%q ' "$@"
+  printf '%s\n' "${quoted% }"
 }
 
 tmux_skill_infer_name() {
@@ -133,7 +149,7 @@ tmux_skill_pane_exists() {
 
 tmux_skill_resolve_pane() {
   local query="$1" session="${2-}"
-  local query_lower list_args exact_matches partial_matches title_lower registry_line registry_pane
+  local query_lower list_args exact_matches partial_matches title_lower registry_line registry_pane registry_session
 
   if [[ "$query" == %* ]] && tmux_skill_pane_exists "$query"; then
     printf '%s\n' "$query"
@@ -147,6 +163,10 @@ tmux_skill_resolve_pane() {
 
   if registry_line="$(tmux_skill_registry_lookup_name "$query" 2>/dev/null)"; then
     registry_pane="$(printf '%s' "$registry_line" | cut -f2)"
+    registry_session="$(printf '%s' "$registry_line" | cut -f4)"
+    if [[ -n "$session" && "$registry_session" != "$session" ]]; then
+      registry_pane=''
+    fi
     if [[ -n "$registry_pane" ]] && tmux_skill_pane_exists "$registry_pane"; then
       printf '%s\n' "$registry_pane"
       return 0
@@ -193,6 +213,94 @@ tmux_skill_resolve_pane() {
   fi
 
   return 1
+}
+
+tmux_skill_resolve_pane_or_die() {
+  local query="$1" session="${2-}"
+  local pane_id status
+
+  if [[ -z "$query" ]]; then
+    pane_id="$(tmux_skill_current_pane)"
+    [[ -n "$pane_id" ]] || tmux_skill_die 'could not detect current tmux pane'
+    printf '%s\n' "$pane_id"
+    return 0
+  fi
+
+  if pane_id="$(tmux_skill_resolve_pane "$query" "$session")"; then
+    :
+  else
+    status=$?
+    if [[ "$pane_id" == 'AMBIGUOUS' || "$status" -eq 2 ]]; then
+      tmux_skill_die "pane target '$query' is ambiguous. Use a pane id or exact title."
+    fi
+    tmux_skill_die "no pane found for target/title: $query"
+  fi
+  printf '%s\n' "$pane_id"
+}
+
+tmux_skill_pane_field() {
+  local pane_id="$1" format="$2"
+  tmux display-message -p -t "$pane_id" "$format"
+}
+
+tmux_skill_pane_target() {
+  tmux_skill_pane_field "$1" '#{session_name}:#{window_index}.#{pane_index}'
+}
+
+tmux_skill_pane_window() {
+  tmux_skill_pane_field "$1" '#{window_name}'
+}
+
+tmux_skill_pane_title() {
+  tmux_skill_pane_field "$1" '#{pane_title}'
+}
+
+tmux_skill_pane_command() {
+  tmux_skill_pane_field "$1" '#{pane_current_command}'
+}
+
+tmux_skill_capture_pane() {
+  local pane_id="$1" lines="$2"
+  tmux capture-pane -p -J -t "$pane_id" -S "-$lines"
+}
+
+tmux_skill_print_pane_header() {
+  local pane_id="$1" lines="${2-120}"
+  cat <<EOF
+TMUX_PANE=$pane_id
+TMUX_TARGET=$(tmux_skill_pane_target "$pane_id")
+TMUX_WINDOW=$(tmux_skill_pane_window "$pane_id")
+TMUX_PANE_TITLE=$(tmux_skill_pane_title "$pane_id")
+TMUX_PANE_COMMAND=$(tmux_skill_pane_command "$pane_id")
+CAPTURE_COMMAND=tmux capture-pane -p -J -t '$pane_id' -S -$lines
+EOF
+}
+
+tmux_skill_server_window_choice() {
+  local session="$1" window_prefix="$2" max_panes="$3"
+  local window_id window_name pane_count next_name index
+
+  while IFS='|' read -r window_id window_name pane_count; do
+    case "$window_name" in
+      "$window_prefix"|"$window_prefix"-[0-9]*)
+        if (( pane_count < max_panes )); then
+          printf 'existing|%s|%s\n' "$window_id" "$window_name"
+          return 0
+        fi
+        ;;
+    esac
+  done < <(tmux list-windows -t "$session" -F '#{window_id}|#{window_name}|#{window_panes}')
+
+  next_name="$window_prefix"
+  if tmux list-windows -t "$session" -F '#{window_name}' | grep -Fx -- "$next_name" >/dev/null 2>&1; then
+    index=2
+    while tmux list-windows -t "$session" -F '#{window_name}' | grep -Fx -- "$window_prefix-$index" >/dev/null 2>&1; do
+      index=$((index + 1))
+    done
+    next_name="$window_prefix-$index"
+  fi
+
+  printf 'new|%s|%s\n' "$next_name" "$next_name"
 }
 
 tmux_skill_port_owner() {

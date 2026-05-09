@@ -20,13 +20,6 @@ Options:
 USAGE
 }
 
-die() {
-  printf 'ERROR: %s\n' "$1" >&2
-  exit 1
-}
-
-command -v tmux >/dev/null 2>&1 || die 'tmux was not found in PATH'
-
 target_query=''
 session=''
 grace='2'
@@ -39,83 +32,27 @@ while [[ $# -gt 0 ]]; do
     -k|--kill) kill_after=true; shift ;;
     --no-kill) kill_after=false; shift ;;
     -h|--help) usage; exit 0 ;;
-    -*) die "unknown option: $1" ;;
+    -*) tmux_skill_die "unknown option: $1" ;;
     *)
       if [[ -z "$target_query" ]]; then
         target_query="$1"
         shift
       else
-        die "unexpected argument: $1"
+        tmux_skill_die "unexpected argument: $1"
       fi
       ;;
   esac
 done
 
-[[ -n "$target_query" ]] || die 'target or pane title is required'
-[[ "$grace" =~ ^[0-9]+$ ]] || die '--grace must be an integer number of seconds'
+[[ -n "$target_query" ]] || tmux_skill_die 'target or pane title is required'
+tmux_skill_require_nonnegative_int "$grace" '--grace'
+tmux_skill_require_tmux
 
 if [[ -z "$session" ]]; then
-  session="$(tmux display-message -p '#{session_name}' 2>/dev/null || true)"
+  session="$(tmux_skill_current_session)"
 fi
 
-resolve_target() {
-  local query="$1"
-  local query_lower
-  query_lower="$(printf '%s' "$query" | tr '[:upper:]' '[:lower:]')"
-
-  if [[ "$query" == %* ]] && tmux display-message -p -t "$query" '#{pane_id}' >/dev/null 2>&1; then
-    printf '%s\n' "$query"
-    return
-  fi
-
-  if [[ "$query" == *:* ]] && tmux display-message -p -t "$query" '#{pane_id}' >/dev/null 2>&1; then
-    tmux display-message -p -t "$query" '#{pane_id}'
-    return
-  fi
-
-  local list_args=(-a)
-  if [[ -n "$session" ]]; then
-    list_args=(-s -t "$session")
-  fi
-
-  local exact_matches=()
-  local partial_matches=()
-  local title_lower
-  while IFS='|' read -r pane_id target title window_name command; do
-    title_lower="$(printf '%s' "$title" | tr '[:upper:]' '[:lower:]')"
-    if [[ "$title" == "$query" ]]; then
-      exact_matches+=("$pane_id|$target|$title|$window_name|$command")
-    elif [[ "$title_lower" == *"$query_lower"* ]]; then
-      partial_matches+=("$pane_id|$target|$title|$window_name|$command")
-    fi
-  done < <(tmux list-panes "${list_args[@]}" -F '#{pane_id}|#{session_name}:#{window_index}.#{pane_index}|#{pane_title}|#{window_name}|#{pane_current_command}')
-
-  if (( ${#exact_matches[@]} == 1 )); then
-    printf '%s\n' "${exact_matches[0]%%|*}"
-    return
-  fi
-
-  if (( ${#exact_matches[@]} > 1 )); then
-    printf 'AMBIGUOUS\n'
-    printf '%s\n' "${exact_matches[@]}" >&2
-    return
-  fi
-
-  if (( ${#partial_matches[@]} == 1 )); then
-    printf '%s\n' "${partial_matches[0]%%|*}"
-    return
-  fi
-
-  if (( ${#partial_matches[@]} > 1 )); then
-    printf 'AMBIGUOUS\n'
-    printf '%s\n' "${partial_matches[@]}" >&2
-    return
-  fi
-}
-
-pane_id="$(resolve_target "$target_query")"
-[[ "$pane_id" != 'AMBIGUOUS' ]] || die "pane target '$target_query' is ambiguous. Matching panes were printed above."
-[[ -n "$pane_id" ]] || die "no pane found for target/title: $target_query"
+pane_id="$(tmux_skill_resolve_pane_or_die "$target_query" "$session")"
 
 if ! resolved_target="$(tmux display-message -p -t "$pane_id" '#{session_name}:#{window_index}.#{pane_index}' 2>/dev/null)"; then
   tmux_skill_registry_remove_pane "$pane_id"
@@ -131,9 +68,9 @@ EOF
   exit 0
 fi
 
-window_name="$(tmux display-message -p -t "$pane_id" '#{window_name}')"
-title="$(tmux display-message -p -t "$pane_id" '#{pane_title}')"
-command="$(tmux display-message -p -t "$pane_id" '#{pane_current_command}')"
+window_name="$(tmux_skill_pane_window "$pane_id")"
+title="$(tmux_skill_pane_title "$pane_id")"
+command="$(tmux_skill_pane_command "$pane_id")"
 
 if ! tmux send-keys -t "$pane_id" C-c 2>/dev/null; then
   tmux_skill_registry_remove_pane "$pane_id"
@@ -154,7 +91,7 @@ if (( grace > 0 )); then
 fi
 
 pane_exists=false
-if tmux display-message -p -t "$pane_id" '#{pane_id}' >/dev/null 2>&1; then
+if tmux_skill_pane_exists "$pane_id"; then
   pane_exists=true
 fi
 

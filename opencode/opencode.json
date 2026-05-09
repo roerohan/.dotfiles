@@ -12,7 +12,6 @@
       "$HOME/.config/opencode/skills/*/scripts/*.sh *": "allow",
       "bash -n *opencode/skills/*/scripts/*.sh": "allow",
       "bash *opencode/skills/build-skill/scripts/validate_skill.sh *opencode/skills/tmux*": "allow",
-      "*": "ask",
       "cat *": "allow",
       "head *": "allow",
       "tail *": "allow",
@@ -41,7 +40,8 @@
       "pnpm lint *": "allow",
       "pnpm format *": "allow",
       "npm lint *": "allow",
-      "npm format *": "allow"
+      "npm format *": "allow",
+      "*": "ask"
     },
     "edit": "allow",
     "webfetch": "allow",
