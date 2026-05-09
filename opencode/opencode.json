@@ -7,6 +7,11 @@
   "model": "openai/gpt-5.5",
   "permission": {
     "bash": {
+      "tmux *": "allow",
+      "lsof *": "allow",
+      "$HOME/.config/opencode/skills/*/scripts/*.sh *": "allow",
+      "bash -n *opencode/skills/*/scripts/*.sh": "allow",
+      "bash *opencode/skills/build-skill/scripts/validate_skill.sh *opencode/skills/tmux*": "allow",
       "*": "ask",
       "cat *": "allow",
       "head *": "allow",
@@ -75,7 +80,7 @@
       "*": "ask",
       "~/.local/share/opencode/*": "deny",
       "**/.ssh/**": "deny",
-      "**/.aws/**": "deny",
+      "**/.aws/**": "deny"
     }
   }
 }
