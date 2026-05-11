@@ -93,6 +93,16 @@
 - Read enough context before editing; avoid thrashing
 - After edits, run a lightweight verification step when relevant
 
+## Long-Running Commands And Tmux
+
+- Use the `tmux` skill for servers, watchers, background logs, interactive consoles, containerized services (`docker run`, `docker compose up`), or anything expected to keep running.
+- Do not run servers/watchers inline unless explicitly requested; start them in a new pane in the current session, preferably with `run-or-reuse-pane.sh` to avoid duplicate named servers.
+- Group related servers in the skill's managed server window/panes, poll readiness with `--wait-for`, `wait-for-text.sh`, or `read-pane.sh`, then continue the task.
+- Keep useful server panes running for testing/log inspection; clean up disposable tmux panes after completion.
+- Run one-off Docker/disposable commands inline when they exit on their own and do not need ongoing logs.
+- Only stop panes created for the current task or clearly identified by the user. Never kill unrelated panes.
+- After starting a pane, report session, window, pane id/title, attach command, and log-capture command.
+
 ## Scope Control
 
 - Avoid over-engineering; do not add features, abstractions, configurability, or refactors beyond what the task requires
