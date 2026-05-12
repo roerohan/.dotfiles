@@ -44,7 +44,7 @@ if command -v node >/dev/null 2>&1; then
   echo "Patched opencode.json for yolo mode"
 fi
 
-# Copy host gitconfig files and patch signing for SSH
+# Resolve host Git config into one sandbox gitconfig and patch signing for SSH
 SSH_PUB_KEY=$(cat "$HOME/.ssh/id_ed25519.pub" 2>/dev/null || true)
 
 patch_signing() {
@@ -54,13 +54,31 @@ patch_signing() {
   fi
 }
 
-for f in "$HOME"/.gitconfig "$HOME"/.gitconfig-*; do
-  [ -f "$f" ] || continue
-  dest="$KIT_DIR/files/home/$(basename "$f")"
-  cp "$f" "$dest"
-  patch_signing "$dest"
-  echo "Synced $(basename "$f")"
-done
+HOST_REPO="${SBX_HOST_REPO:-$PWD}"
+SANDBOX_GITCONFIG="$KIT_DIR/files/home/.gitconfig"
+rm -f "$SANDBOX_GITCONFIG" "$KIT_DIR"/files/home/.gitconfig-*
+
+if git -C "$HOST_REPO" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  : > "$SANDBOX_GITCONFIG"
+
+  git -C "$HOST_REPO" config --global --includes --list 2>/dev/null | while IFS= read -r entry; do
+    key=${entry%%=*}
+    value=${entry#*=}
+
+    case "$key" in
+      include.path|includeif.*.path)
+        continue
+        ;;
+    esac
+
+    git config -f "$SANDBOX_GITCONFIG" --add "$key" "$value"
+  done
+
+  patch_signing "$SANDBOX_GITCONFIG"
+  echo "Resolved sandbox .gitconfig from $HOST_REPO"
+else
+  echo "SBX_HOST_REPO/PWD is not a Git worktree ($HOST_REPO) — skipping sandbox .gitconfig"
+fi
 
 # Sync MCP auth tokens from ~/.local/share/opencode
 DATA_SRC="$HOME/.local/share/opencode"

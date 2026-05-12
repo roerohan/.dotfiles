@@ -23,10 +23,29 @@ commands:
       user: "0"
       description: Install corporate CA certificates into OS trust store (skipped if absent)
     - command: >-
+        apt-get update -qq && apt-get install -y -qq
+        gh
+        tmux
+        python3
+        python3-pip
+        python3-venv
+        pipx
+        jq
+        ripgrep
+        fd-find
+        less
+        build-essential
+      user: "0"
+      description: Install common development tools
+    - command: >-
+        command -v pnpm >/dev/null 2>&1 || npm install -g pnpm
+      user: "0"
+      description: Install pnpm package manager
+    - command: >-
+        command -v uv >/dev/null 2>&1 || pipx install uv
+      user: "1000"
+      description: Install uv Python package manager
+    - command: >-
         cd /home/agent/.config/opencode && npm install
       user: "1000"
       description: Install OpenCode plugin dependencies
-    - command: >-
-        (command -v gh >/dev/null 2>&1) || (apt-get update -qq && apt-get install -y -qq gh)
-      user: "0"
-      description: Install GitHub CLI
