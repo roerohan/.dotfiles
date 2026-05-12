@@ -24,12 +24,14 @@ commands:
       description: Install corporate CA certificates into OS trust store (skipped if absent)
     - command: >-
         apt-get update -qq && apt-get install -y -qq
+        git
         gh
         tmux
         python3
         python3-pip
         python3-venv
         pipx
+        curl
         jq
         ripgrep
         fd-find
@@ -37,6 +39,22 @@ commands:
         build-essential
       user: "0"
       description: Install common development tools
+    - command: >-
+        command -v corepack >/dev/null 2>&1 && corepack enable || true
+      user: "0"
+      description: Enable Corepack when available
+    - command: |-
+        export NVM_DIR="/home/agent/.nvm"
+        if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+          mkdir -p "$NVM_DIR"
+          curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | PROFILE=/home/agent/.bashrc bash
+        fi
+        grep -q 'NVM_DIR="/home/agent/.nvm"' /home/agent/.profile 2>/dev/null || cat >> /home/agent/.profile <<'EOF'
+        export NVM_DIR="/home/agent/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+        EOF
+      user: "1000"
+      description: Install nvm for switching Node versions
     - command: >-
         command -v pnpm >/dev/null 2>&1 || npm install -g pnpm
       user: "0"
