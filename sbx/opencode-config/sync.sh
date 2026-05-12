@@ -49,8 +49,8 @@ SSH_PUB_KEY=$(cat "$HOME/.ssh/id_ed25519.pub" 2>/dev/null || true)
 
 patch_signing() {
   if [ -n "$SSH_PUB_KEY" ] && git config -f "$1" user.signingkey >/dev/null 2>&1; then
-    git config -f "$1" user.signingkey "key::${SSH_PUB_KEY}"
-    git config -f "$1" gpg.format ssh
+    git config -f "$1" --replace-all user.signingkey "key::${SSH_PUB_KEY}"
+    git config -f "$1" --replace-all gpg.format ssh
   fi
 }
 
