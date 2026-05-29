@@ -50,6 +50,51 @@ This repository consists of configuration files for my Linux system.
 
 To get a local copy up and running follow these simple steps.
 
+### Remote Ubuntu Bootstrap
+
+Paste this into a fresh Ubuntu remote box to install the shell/editor/agent setup and clone this repo:
+
+```sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
+```
+
+The script installs apt dependencies, GitHub CLI (`gh`), Oh My Zsh, nvm/Node LTS, Bun, OpenCode, tmux config, AstroNvim config, the sbx `opencode-config` kit, and this repo under `~/dotfiles`.
+
+It prompts for `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`, writes them to `~/.zshenv`, copies `zsh/zshrc` to `~/.zshrc`, and patches the copied file for Ubuntu instead of symlinking it. That copy is intentional: the source zshrc still has macOS baggage, because of course it does.
+
+It also asks whether to use existing SSH keys or generate new ones for GitHub auth and Git commit signing. If keys are generated, the script prints the public-key paths plus `gh ssh-key add ...` commands and GitHub settings URLs at the end. It can optionally authenticate `gh` and upload the keys for you.
+
+Git config is copied from this repo when needed, then normalized for the remote box: `user.name`, `user.email`, GitHub SSH URL rewriting, default branch, auto upstream setup, and SSH commit signing when a signing key is available.
+
+Existing files are not overwritten blindly. If a config already matches, it is skipped. If it differs, the script asks before replacing and backs up the old file first. Shocking restraint from a setup script, frankly.
+
+Most configuration steps are optional. You can skip GitHub CLI install/auth, SSH key setup, Git globals, tmux links, OpenCode config, sbx kit setup, zshrc copy, and Neovim setup, then handle them manually later if you prefer artisanal suffering.
+
+OpenCode is configured broadly for remote-box work: normal read/edit/bash/tool usage is allowed, while `.env` files, `~/.zshenv`, `~/.npmrc`, `~/.netrc`, secret directories, private keys, SSH/AWS/GCP/GPG/Kube material, and OpenCode auth files stay denied. Obvious shell-based secret reads like `env`, `printenv`, and `cat ~/.zshenv` are denied too; this is a convenience guard, not a military-grade sandbox. Shocking, I know.
+
+At the end, the script validates locally with `zsh -n`, `opencode debug config`, git identity checks, tmux config loading, and a headless Neovim startup. It also runs `opencode run` to inspect the completed setup and return a PASS/FAIL report.
+
+Useful overrides:
+
+```sh
+DOTFILES_DIR=~/src/dotfiles \
+DOTFILES_REPO=https://github.com/roerohan/.dotfiles.git \
+OPENCODE_VALIDATE_MODEL=anthropic/claude-sonnet-4-6 \
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
+```
+
+Skip the final OpenCode validation when API keys are not ready:
+
+```sh
+RUN_OPENCODE_VALIDATE=0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
+```
+
+Force the final OpenCode validation even when no `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` is loaded:
+
+```sh
+OPENCODE_FORCE_VALIDATE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
+```
+
 ### Prerequisites
 
 This is an example of how to list things you need to use the software and how to install them.
