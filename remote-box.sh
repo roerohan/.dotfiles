@@ -5,8 +5,6 @@ set -Eeuo pipefail
 DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/roerohan/.dotfiles.git}"
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 NVM_VERSION="${NVM_VERSION:-v0.40.3}"
-SSH_AUTH_KEY_PATH=""
-SSH_SIGNING_KEY_PATH=""
 
 log() {
   printf '\n==> %s\n' "$*"
@@ -395,82 +393,6 @@ configure_fd() {
   fi
 }
 
-expand_user_path() {
-  local path="$1"
-
-  case "$path" in
-    "~") printf '%s' "$HOME" ;;
-    "~/"*) printf '%s/%s' "$HOME" "${path#~/}" ;;
-    *) printf '%s' "$path" ;;
-  esac
-}
-
-ensure_ssh_key() {
-  local label="$1"
-  local default_path="$2"
-  local email="$3"
-  local key_path
-  local passphrase
-
-  mkdir -p "$HOME/.ssh"
-  chmod 700 "$HOME/.ssh"
-
-  key_path="$(read_tty "$label SSH key path [$default_path]: " "$default_path")"
-  key_path="$(expand_user_path "$key_path")"
-
-  if [ -f "$key_path" ] && [ -f "$key_path.pub" ]; then
-    log "Using existing $label SSH key: $key_path" >&2
-    printf '%s' "$key_path"
-    return
-  fi
-
-  if [ -e "$key_path" ] && [ ! -f "$key_path.pub" ]; then
-    warn "$key_path exists but $key_path.pub is missing; not touching it. Generate the public key manually with: ssh-keygen -y -f '$key_path' > '$key_path.pub'"
-    printf '%s' "$key_path"
-    return
-  fi
-
-  if ! ask_yes_no "$label SSH key does not exist. Generate it?" y; then
-    warn "Skipping $label SSH key generation"
-    printf '%s' ""
-    return
-  fi
-
-  passphrase="$(read_secret_tty "$label SSH key passphrase (blank for none): ")"
-  ssh-keygen -t ed25519 -C "$email $label $(hostname)" -f "$key_path" -N "$passphrase" >&2
-  chmod 600 "$key_path"
-  chmod 644 "$key_path.pub"
-  printf '%s' "$key_path"
-}
-
-maybe_start_ssh_agent_and_add_keys() {
-  if [ -z "${SSH_AUTH_SOCK:-}" ]; then
-    eval "$(ssh-agent -s)" >/dev/null
-  fi
-
-  [ -n "$SSH_AUTH_KEY_PATH" ] && ssh-add "$SSH_AUTH_KEY_PATH" >/dev/null 2>&1 || true
-  [ -n "$SSH_SIGNING_KEY_PATH" ] && ssh-add "$SSH_SIGNING_KEY_PATH" >/dev/null 2>&1 || true
-}
-
-configure_ssh_keys() {
-  local default_email
-
-  if ! ask_yes_no "Configure SSH keys for GitHub auth/signing?" n; then
-    log "Skipping SSH key setup"
-    return
-  fi
-
-  default_email="$(git config --global user.email 2>/dev/null || printf 'roerohan@gmail.com')"
-  default_email="$(read_tty "Email/comment for generated SSH keys [$default_email]: " "$default_email")"
-
-  SSH_AUTH_KEY_PATH="$(ensure_ssh_key "GitHub auth" "$HOME/.ssh/id_ed25519" "$default_email")"
-  SSH_SIGNING_KEY_PATH="$(ensure_ssh_key "Git signing" "$HOME/.ssh/id_ed25519_signing" "$default_email")"
-
-  if ask_yes_no "Add available SSH keys to ssh-agent for this session?" y; then
-    maybe_start_ssh_agent_and_add_keys
-  fi
-}
-
 configure_git() {
   local git_name
   local git_email
@@ -505,14 +427,8 @@ configure_git() {
   git config --global push.autoSetupRemote true
   git config --global init.defaultBranch main
 
-  if [ -n "$SSH_SIGNING_KEY_PATH" ] && [ -f "$SSH_SIGNING_KEY_PATH.pub" ]; then
-    git config --global gpg.format ssh
-    git config --global user.signingkey "$SSH_SIGNING_KEY_PATH.pub"
-    git config --global commit.gpgsign true
-  else
-    warn "No Git signing key configured; disabling global commit signing so commits do not fail on this box. Revolutionary: avoiding broken defaults."
-    git config --global commit.gpgsign false
-  fi
+  warn "SSH signing is not configured on the remote. Use SSH agent forwarding for GitHub auth, or configure signing manually if you need signed commits here."
+  git config --global commit.gpgsign false
 }
 
 configure_github_cli() {
@@ -533,12 +449,7 @@ configure_github_cli() {
   fi
 
   if gh auth status >/dev/null 2>&1; then
-    if [ -n "$SSH_AUTH_KEY_PATH" ] && [ -f "$SSH_AUTH_KEY_PATH.pub" ] && ask_yes_no "Upload GitHub auth SSH public key with gh?" n; then
-      gh ssh-key add "$SSH_AUTH_KEY_PATH.pub" --title "$(hostname)-auth" || warn "Could not upload auth SSH key"
-    fi
-    if [ -n "$SSH_SIGNING_KEY_PATH" ] && [ -f "$SSH_SIGNING_KEY_PATH.pub" ] && ask_yes_no "Upload Git signing SSH public key with gh?" n; then
-      gh ssh-key add "$SSH_SIGNING_KEY_PATH.pub" --title "$(hostname)-signing" --type signing || warn "Could not upload signing SSH key"
-    fi
+    log "GitHub CLI auth is ready"
   fi
 }
 
@@ -722,6 +633,11 @@ run_local_validation() {
   else
     warn "~/.config/nvim not found; Neovim config validation skipped"
   fi
+  if [ -n "${SSH_AUTH_SOCK:-}" ]; then
+    ssh-add -l >/dev/null 2>&1 || warn "SSH_AUTH_SOCK is set but no forwarded/listable keys are visible. Git over SSH may fail until you reconnect with agent forwarding."
+  else
+    warn "SSH_AUTH_SOCK is not set. Reconnect with ssh -A for GitHub SSH auth."
+  fi
 }
 
 run_opencode_validation() {
@@ -756,6 +672,7 @@ Check:
 - if configured, OpenCode global config, AGENTS.md, and skills are wired under ~/.config/opencode
 - OpenCode config permits normal read/edit/bash/tool usage but denies secrets, .env files, SSH/AWS/GCP/GPG/Kube material, and OpenCode auth files
 - if configured, git global user.name/user.email are set, gh is installed/authenticated, and ~/.config/sbx-kits/opencode-config exists if the sbx kit was requested
+- SSH agent forwarding is available for GitHub SSH auth, or the report explains how to reconnect with ssh -A
 - node, npm, bun, opencode, tmux, nvim, rg, fd/fdfind, fzf, and direnv are available; gh is optional if skipped
 
 Return a concise PASS/FAIL report with exact fixes if anything is wrong.
@@ -763,23 +680,23 @@ Return a concise PASS/FAIL report with exact fixes if anything is wrong.
 }
 
 print_final_instructions() {
-  log "GitHub key follow-up"
+  log "SSH agent forwarding follow-up"
 
-  if [ -n "$SSH_AUTH_KEY_PATH" ] && [ -f "$SSH_AUTH_KEY_PATH.pub" ]; then
-    printf 'Authentication public key:\n  %s\n\n' "$SSH_AUTH_KEY_PATH.pub"
-    printf 'Add it to GitHub with one of:\n'
-    printf '  gh ssh-key add %q --title %q\n' "$SSH_AUTH_KEY_PATH.pub" "$(hostname)-auth"
-    printf '  https://github.com/settings/keys\n\n'
-  fi
-
-  if [ -n "$SSH_SIGNING_KEY_PATH" ] && [ -f "$SSH_SIGNING_KEY_PATH.pub" ]; then
-    printf 'Signing public key:\n  %s\n\n' "$SSH_SIGNING_KEY_PATH.pub"
-    printf 'Add it to GitHub with one of:\n'
-    printf '  gh ssh-key add %q --title %q --type signing\n' "$SSH_SIGNING_KEY_PATH.pub" "$(hostname)-signing"
-    printf '  https://github.com/settings/ssh/new\n\n'
-  fi
-
-  printf 'If GitHub auth is not set yet, run:\n  gh auth login -h github.com -p ssh -w\n\n'
+  printf 'This setup does not create SSH keys on the remote box. Use SSH agent forwarding from your local machine instead.\n\n'
+  printf 'On your local machine, make sure your GitHub key is loaded:\n'
+  printf '  ssh-add -l\n'
+  printf '  ssh-add ~/.ssh/id_ed25519        # if needed\n\n'
+  printf 'Reconnect to this box with agent forwarding:\n'
+  printf '  ssh -A %s@<remote-host-or-ip>\n\n' "$USER"
+  printf 'Then validate on the remote:\n'
+  printf '  ssh-add -l\n'
+  printf '  ssh -T git@github.com\n\n'
+  printf 'If forwarding is disabled by local SSH config, add something like this locally in ~/.ssh/config:\n'
+  printf '  Host <remote-alias>\n'
+  printf '    HostName <remote-host-or-ip>\n'
+  printf '    User %s\n' "$USER"
+  printf '    ForwardAgent yes\n\n'
+  printf 'If GitHub CLI auth is not set yet and you want it, run:\n  gh auth login -h github.com -p ssh -w\n\n'
   printf 'Restart your shell with:\n  exec zsh -l\n'
 }
 
@@ -791,7 +708,6 @@ main() {
   install_nvm_node
   install_bun
   install_opencode
-  configure_ssh_keys
   configure_git
   configure_github_cli
   configure_tmux

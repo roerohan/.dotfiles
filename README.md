@@ -62,13 +62,13 @@ The script installs apt dependencies, GitHub CLI (`gh`), Oh My Zsh, nvm/Node LTS
 
 It prompts for `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`, writes them to `~/.zshenv`, copies `zsh/zshrc` to `~/.zshrc`, and patches the copied file for Ubuntu instead of symlinking it. That copy is intentional: the source zshrc still has macOS baggage, because of course it does.
 
-It also asks whether to use existing SSH keys or generate new ones for GitHub auth and Git commit signing. If keys are generated, the script prints the public-key paths plus `gh ssh-key add ...` commands and GitHub settings URLs at the end. It can optionally authenticate `gh` and upload the keys for you.
+It does not create SSH keys on the remote box. Use SSH agent forwarding instead, for example `ssh -A rohan@your-remote-ip`. At the end, the script prints the local and remote commands needed to verify forwarded GitHub SSH auth. Fewer private keys scattered across EC2 like confetti. Radical.
 
-Git config is copied from this repo when needed, then normalized for the remote box: `user.name`, `user.email`, GitHub SSH URL rewriting, default branch, auto upstream setup, and SSH commit signing when a signing key is available.
+Git config is copied from this repo when needed, then normalized for the remote box: `user.name`, `user.email`, GitHub SSH URL rewriting, default branch, and auto upstream setup. Commit signing is disabled by default on the remote to avoid broken signing config unless you choose to set it up manually.
 
 Existing files are not overwritten blindly. If a config already matches, it is skipped. If it differs, the script asks before replacing and backs up the old file first. Shocking restraint from a setup script, frankly.
 
-Most configuration steps are optional. GitHub CLI install/auth, SSH key setup, and Git globals default to skip unless you opt in. You can also skip tmux links, OpenCode config, sbx kit setup, zshrc copy, and Neovim setup, then handle them manually later if you prefer artisanal suffering.
+Most configuration steps are optional. GitHub CLI install/auth and Git globals default to skip unless you opt in. You can also skip tmux links, OpenCode config, sbx kit setup, zshrc copy, and Neovim setup, then handle them manually later if you prefer artisanal suffering.
 
 OpenCode is configured broadly for remote-box work: normal read/edit/bash/tool usage is allowed, while `.env` files, `~/.zshenv`, `~/.npmrc`, `~/.netrc`, secret directories, private keys, SSH/AWS/GCP/GPG/Kube material, and OpenCode auth files stay denied. Obvious shell-based secret reads like `env`, `printenv`, and `cat ~/.zshenv` are denied too; this is a convenience guard, not a military-grade sandbox. Shocking, I know.
 
