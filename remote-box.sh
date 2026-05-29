@@ -29,21 +29,6 @@ read_tty() {
   printf '%s' "${answer:-$default}"
 }
 
-read_secret_tty() {
-  local prompt="$1"
-  local answer=""
-
-  if [ -r /dev/tty ]; then
-    printf '%s' "$prompt" > /dev/tty
-    stty -echo < /dev/tty
-    IFS= read -r answer < /dev/tty || answer=""
-    stty echo < /dev/tty
-    printf '\n' > /dev/tty
-  fi
-
-  printf '%s' "$answer"
-}
-
 ask_yes_no() {
   local prompt="$1"
   local default="${2:-y}"
@@ -524,67 +509,24 @@ configure_sbx_kit() {
   fi
 }
 
-write_api_key_exports() {
-  local zshenv="$HOME/.zshenv"
-  local openai_key="${OPENAI_API_KEY:-}"
-  local anthropic_key="${ANTHROPIC_API_KEY:-}"
-  local tmp=""
+detect_forwarded_api_keys() {
+  # Keys arrive via SSH SendEnv/AcceptEnv: session-scoped and never written to
+  # disk. OpenCode reads OPENAI_API_KEY / ANTHROPIC_API_KEY straight from the
+  # environment at runtime, so when they are forwarded into the session no auth
+  # file or ~/.zshenv export is needed. We only detect and report here.
+  local found=0
 
-  if [ -z "$openai_key" ] && ! grep -q '^export OPENAI_API_KEY=' "$zshenv" 2>/dev/null; then
-    openai_key="$(read_secret_tty "OpenAI API key (blank to skip): ")"
+  if [ -n "${OPENAI_API_KEY:-}" ]; then
+    log "OPENAI_API_KEY present in environment (forwarded via SendEnv); OpenCode will use it"
+    found=1
+  fi
+  if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    log "ANTHROPIC_API_KEY present in environment (forwarded via SendEnv); OpenCode will use it"
+    found=1
   fi
 
-  if [ -z "$anthropic_key" ] && ! grep -q '^export ANTHROPIC_API_KEY=' "$zshenv" 2>/dev/null; then
-    anthropic_key="$(read_secret_tty "Anthropic API key (blank to skip): ")"
-  fi
-
-  if [ -z "$openai_key" ] && [ -z "$anthropic_key" ]; then
-    log "No new API keys provided"
-    return
-  fi
-
-  log "Writing API key exports to ~/.zshenv"
-  tmp="$(mktemp)"
-  if [ -f "$zshenv" ]; then
-    awk '
-      /^# >>> dotfiles remote-box api keys >>>$/ { skip = 1; next }
-      /^# <<< dotfiles remote-box api keys <<<$/ { skip = 0; next }
-      skip != 1 { print }
-    ' "$zshenv" > "$tmp"
-  else
-    : > "$tmp"
-  fi
-
-  {
-    printf '\n# >>> dotfiles remote-box api keys >>>\n'
-    [ -n "$openai_key" ] && printf 'export OPENAI_API_KEY=%q\n' "$openai_key"
-    [ -n "$anthropic_key" ] && printf 'export ANTHROPIC_API_KEY=%q\n' "$anthropic_key"
-    printf '# <<< dotfiles remote-box api keys <<<\n'
-  } >> "$tmp"
-
-  install -m 600 "$tmp" "$zshenv"
-  rm -f "$tmp"
-
-  [ -n "$openai_key" ] && export OPENAI_API_KEY="$openai_key"
-  [ -n "$anthropic_key" ] && export ANTHROPIC_API_KEY="$anthropic_key"
-}
-
-load_existing_api_key_exports() {
-  local loaded_openai=""
-  local loaded_anthropic=""
-
-  if [ ! -f "$HOME/.zshenv" ] || ! command -v zsh >/dev/null 2>&1; then
-    return
-  fi
-
-  if [ -z "${OPENAI_API_KEY:-}" ]; then
-    loaded_openai="$(zsh -c 'print -r -- ${OPENAI_API_KEY-}' 2>/dev/null || true)"
-    [ -n "$loaded_openai" ] && export OPENAI_API_KEY="$loaded_openai"
-  fi
-
-  if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-    loaded_anthropic="$(zsh -c 'print -r -- ${ANTHROPIC_API_KEY-}' 2>/dev/null || true)"
-    [ -n "$loaded_anthropic" ] && export ANTHROPIC_API_KEY="$loaded_anthropic"
+  if [ "$found" -eq 0 ]; then
+    warn "No OPENAI_API_KEY/ANTHROPIC_API_KEY in environment. Reconnect with SendEnv configured and those vars exported locally (see final instructions). Keys are intentionally not stored on the box."
   fi
 }
 
@@ -694,7 +636,7 @@ run_opencode_validation() {
   fi
 
   if [ -z "${OPENAI_API_KEY:-}" ] && [ -z "${ANTHROPIC_API_KEY:-}" ] && [ "${OPENCODE_FORCE_VALIDATE:-0}" != "1" ]; then
-    if ! ask_yes_no "No OpenAI/Anthropic env keys are loaded. Try final OpenCode validation anyway?" n; then
+    if ! ask_yes_no "No forwarded OpenAI/Anthropic env keys are present (reconnect with SendEnv to provide them). Try final OpenCode validation anyway?" n; then
       log "Skipping OpenCode validation"
       return
     fi
@@ -738,10 +680,17 @@ print_final_instructions() {
   printf '    User %s\n' "$USER"
   printf '    ForwardAgent yes\n\n'
   printf 'If GitHub CLI auth is not set yet and you want it, run:\n  gh auth login -h github.com -p ssh -w\n\n'
-  printf 'To forward OpenAI/Anthropic API keys per SSH session, add this locally in ~/.ssh/config:\n'
+  printf 'OpenAI/Anthropic API keys are NOT stored on this box. They are forwarded per SSH session and OpenCode reads them straight from the environment.\n'
+  printf 'Add this locally in ~/.ssh/config:\n'
   printf '  Host <remote-alias>\n'
   printf '    SendEnv OPENAI_API_KEY ANTHROPIC_API_KEY\n\n'
-  printf 'Then connect from a shell where those env vars are exported. The remote sshd must allow AcceptEnv; this script can configure that when you opt in.\n\n'
+  printf 'Then connect from a local shell where those vars are exported, e.g.:\n'
+  printf '  export OPENAI_API_KEY=...    # in your local shell/keychain\n'
+  printf '  ssh -A %s@<remote-host-or-ip>\n\n' "$USER"
+  printf 'The remote sshd must allow AcceptEnv for those vars; this script configures that when you opt in.\n'
+  printf 'Verify on the remote after reconnecting:\n'
+  printf '  printenv OPENAI_API_KEY >/dev/null && echo OPENAI_API_KEY present\n'
+  printf '  opencode auth list\n\n'
   printf 'Restart your shell with:\n  exec zsh -l\n'
 }
 
@@ -760,8 +709,7 @@ main() {
   configure_opencode
   configure_fd
   configure_sbx_kit
-  write_api_key_exports
-  load_existing_api_key_exports
+  detect_forwarded_api_keys
   copy_linux_zshrc
   configure_neovim
   set_login_shell

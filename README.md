@@ -60,9 +60,9 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/
 
 The script installs apt dependencies, GitHub CLI (`gh`), Oh My Zsh, nvm/Node LTS, Bun, OpenCode, tmux config, AstroNvim config, the sbx `opencode-config` kit, and this repo under `~/dotfiles`.
 
-It prompts for `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`, writes them to `~/.zshenv`, copies `zsh/zshrc` to `~/.zshrc`, and patches the copied file for Ubuntu instead of symlinking it. That copy is intentional: the source zshrc still has macOS baggage, because of course it does.
+It copies `zsh/zshrc` to `~/.zshrc` and patches the copied file for Ubuntu instead of symlinking it. That copy is intentional: the source zshrc still has macOS baggage, because of course it does.
 
-If you prefer session-only API keys, the script can optionally configure remote `sshd` with `AcceptEnv OPENAI_API_KEY ANTHROPIC_API_KEY`. Pair that with local SSH config `SendEnv OPENAI_API_KEY ANTHROPIC_API_KEY`, then connect from a shell where those env vars are exported. Not agent forwarding, but close enough for bearer-token land.
+`OPENAI_API_KEY` and `ANTHROPIC_API_KEY` are never stored on the box. The script reads them from the session environment (forwarded via SSH `SendEnv`/`AcceptEnv`) and OpenCode picks them up straight from `env` at runtime. The script can optionally configure remote `sshd` with `AcceptEnv OPENAI_API_KEY ANTHROPIC_API_KEY`; pair that with local SSH config `SendEnv OPENAI_API_KEY ANTHROPIC_API_KEY` and connect from a shell where those vars are exported. No keys on disk, no `~/.zshenv` exports, no prompting. Session-scoped secrets, the way the gods intended.
 
 It does not create SSH keys on the remote box. Use SSH agent forwarding instead, for example `ssh -A rohan@your-remote-ip`. At the end, the script prints the local and remote commands needed to verify forwarded GitHub SSH auth. Fewer private keys scattered across EC2 like confetti. Radical.
 
