@@ -37,8 +37,18 @@ commands:
         fd-find
         less
         build-essential
+        rsync
       user: "0"
       description: Install common development tools
+    - command: |-
+        set -e
+        export PATH="/home/agent/.local/bin:$PATH"
+        if ! command -v harbor >/dev/null 2>&1; then
+          pipx install harbor
+        fi
+        pipx inject harbor modal==1.4.1 pyyaml tenacity
+      user: "1000"
+      description: Install Harbor, Modal, and Harbor extension dependencies
     - command: >-
         command -v corepack >/dev/null 2>&1 && corepack enable || true
       user: "0"

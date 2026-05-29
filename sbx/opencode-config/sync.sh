@@ -94,6 +94,29 @@ if [ -f "$DATA_SRC/auth.json" ]; then
   echo "Synced auth.json"
 fi
 
+# Seed sbx proxy secrets from the current shell when available. These are stored
+# by sbx and are not exposed directly inside the sandbox.
+seed_secret() {
+  service="$1"
+  shift
+  if ! command -v sbx >/dev/null 2>&1; then
+    return 0
+  fi
+  for env_name in "$@"; do
+    eval "secret_value=\${$env_name:-}"
+    if [ -n "$secret_value" ]; then
+      printf '%s' "$secret_value" | sbx secret set -g -f "$service" >/dev/null 2>&1 || true
+      echo "Seeded global sbx secret for $service from $env_name"
+      return 0
+    fi
+  done
+}
+
+seed_secret openai OPENAI_API_KEY OPENAI_KEY
+seed_secret anthropic ANTHROPIC_API_KEY ANTHROPIC_KEY CLAUDE_API_KEY
+seed_secret google GEMINI_API_KEY GOOGLE_API_KEY
+seed_secret xai XAI_API_KEY
+
 # Export corporate CA certificates from macOS keychain for sandbox TLS trust
 CERT_DEST="$KIT_DIR/files/home/.ssl"
 mkdir -p "$CERT_DEST"
