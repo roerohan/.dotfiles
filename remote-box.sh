@@ -221,7 +221,7 @@ configure_sshd_accept_env() {
   local config_path="/etc/ssh/sshd_config.d/90-llm-env.conf"
   local sshd_bin=""
 
-  if ! ask_yes_no "Allow SSH SendEnv for OpenAI/Anthropic API keys on this box?" n; then
+  if ! ask_yes_no "Allow SSH SendEnv for OpenAI/Anthropic API keys and GITHUB_TOKEN on this box?" n; then
     log "Skipping sshd AcceptEnv setup"
     return
   fi
@@ -240,8 +240,8 @@ configure_sshd_accept_env() {
     fi
   fi
 
-  log "Configuring sshd AcceptEnv for LLM API keys"
-  printf 'AcceptEnv OPENAI_API_KEY ANTHROPIC_API_KEY\n' | sudo_cmd tee "$config_path" >/dev/null
+  log "Configuring sshd AcceptEnv for LLM API keys and GITHUB_TOKEN"
+  printf 'AcceptEnv OPENAI_API_KEY ANTHROPIC_API_KEY GITHUB_TOKEN\n' | sudo_cmd tee "$config_path" >/dev/null
   sudo_cmd chmod 644 "$config_path"
 
   if [ -n "$sshd_bin" ]; then
@@ -529,14 +529,29 @@ configure_github_cli() {
     return
   fi
 
-  if ! ask_yes_no "Configure/authenticate GitHub CLI?" n; then
-    log "Skipping GitHub CLI config"
+  # Prefer a forwarded GITHUB_TOKEN (SendEnv/AcceptEnv): session-scoped, never
+  # persisted to ~/.config/gh on the box. gh reads GH_TOKEN/GITHUB_TOKEN from the
+  # environment automatically, so no `gh auth login` is needed when it is set.
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    log "GITHUB_TOKEN present in environment (forwarded via SendEnv); gh will use it without on-box login"
+    # Keep git operations on the forwarded SSH agent; token covers gh API calls.
+    gh config set git_protocol ssh >/dev/null 2>&1 || warn "Could not set gh git_protocol to ssh"
+    if gh auth status >/dev/null 2>&1; then
+      log "GitHub CLI auth is ready via forwarded GITHUB_TOKEN"
+    else
+      warn "GITHUB_TOKEN is set but gh auth status failed; check the token's scopes/validity"
+    fi
+    return
+  fi
+
+  if ! ask_yes_no "No forwarded GITHUB_TOKEN found. Configure/authenticate GitHub CLI on the box directly?" n; then
+    log "Skipping GitHub CLI config. Reconnect with SendEnv GITHUB_TOKEN to auth without on-box login."
     return
   fi
 
   if gh auth status >/dev/null 2>&1; then
     log "GitHub CLI already authenticated"
-  elif ask_yes_no "Authenticate gh now? This opens GitHub device/browser login." y; then
+  elif ask_yes_no "Authenticate gh now? This opens GitHub device/browser login and stores a token on the box." y; then
     gh auth login -h github.com -p ssh -w || warn "gh auth login failed; you can run it later. Computers remain undefeated."
   fi
 
@@ -744,18 +759,21 @@ print_final_instructions() {
   printf '    HostName <remote-host-or-ip>\n'
   printf '    User %s\n' "$USER"
   printf '    ForwardAgent yes\n\n'
-  printf 'If GitHub CLI auth is not set yet and you want it, run:\n  gh auth login -h github.com -p ssh -w\n\n'
-  printf 'OpenAI/Anthropic API keys are NOT stored on this box. They are forwarded per SSH session and OpenCode reads them straight from the environment.\n'
+  printf 'API keys and GITHUB_TOKEN are NOT stored on this box. They are forwarded per SSH session: OpenCode reads OPENAI_API_KEY/ANTHROPIC_API_KEY and gh reads GITHUB_TOKEN straight from the environment.\n'
   printf 'Add this locally in ~/.ssh/config:\n'
   printf '  Host <remote-alias>\n'
-  printf '    SendEnv OPENAI_API_KEY ANTHROPIC_API_KEY\n\n'
+  printf '    SendEnv OPENAI_API_KEY ANTHROPIC_API_KEY GITHUB_TOKEN\n\n'
   printf 'Then connect from a local shell where those vars are exported, e.g.:\n'
   printf '  export OPENAI_API_KEY=...    # in your local shell/keychain\n'
+  printf '  export GITHUB_TOKEN=...      # a GitHub PAT with the scopes you need\n'
   printf '  ssh -A %s@<remote-host-or-ip>\n\n' "$USER"
   printf 'The remote sshd must allow AcceptEnv for those vars; this script configures that when you opt in.\n'
   printf 'Verify on the remote after reconnecting:\n'
   printf '  printenv OPENAI_API_KEY >/dev/null && echo OPENAI_API_KEY present\n'
-  printf '  opencode auth list\n\n'
+  printf '  opencode auth list\n'
+  printf '  printenv GITHUB_TOKEN >/dev/null && echo GITHUB_TOKEN present\n'
+  printf '  gh auth status\n\n'
+  printf 'If you would rather not forward a token, you can still log in on the box (token is then stored there):\n  gh auth login -h github.com -p ssh -w\n\n'
   printf 'Restart your shell with:\n  exec zsh -l\n'
 }
 
