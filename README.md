@@ -68,7 +68,7 @@ Git config is copied from this repo when needed, then normalized for the remote 
 
 Existing files are not overwritten blindly. If a config already matches, it is skipped. If it differs, the script asks before replacing and backs up the old file first. Shocking restraint from a setup script, frankly.
 
-Most configuration steps are optional. You can skip GitHub CLI install/auth, SSH key setup, Git globals, tmux links, OpenCode config, sbx kit setup, zshrc copy, and Neovim setup, then handle them manually later if you prefer artisanal suffering.
+Most configuration steps are optional. GitHub CLI install/auth, SSH key setup, and Git globals default to skip unless you opt in. You can also skip tmux links, OpenCode config, sbx kit setup, zshrc copy, and Neovim setup, then handle them manually later if you prefer artisanal suffering.
 
 OpenCode is configured broadly for remote-box work: normal read/edit/bash/tool usage is allowed, while `.env` files, `~/.zshenv`, `~/.npmrc`, `~/.netrc`, secret directories, private keys, SSH/AWS/GCP/GPG/Kube material, and OpenCode auth files stay denied. Obvious shell-based secret reads like `env`, `printenv`, and `cat ~/.zshenv` are denied too; this is a convenience guard, not a military-grade sandbox. Shocking, I know.
 

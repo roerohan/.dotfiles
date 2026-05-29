@@ -155,7 +155,7 @@ install_github_cli() {
     return
   fi
 
-  if ! ask_yes_no "Install GitHub CLI (gh)?" y; then
+  if ! ask_yes_no "Install GitHub CLI (gh)?" n; then
     log "Skipping GitHub CLI install"
     return
   fi
@@ -200,9 +200,11 @@ install_nvm_node() {
   . "$HOME/.nvm/nvm.sh"
 
   log "Installing latest Node.js LTS"
+  set +u
   nvm install --lts
   nvm alias default 'lts/*'
   nvm use --lts
+  set -u
 }
 
 install_bun() {
@@ -453,7 +455,7 @@ maybe_start_ssh_agent_and_add_keys() {
 configure_ssh_keys() {
   local default_email
 
-  if ! ask_yes_no "Configure SSH keys for GitHub auth/signing?" y; then
+  if ! ask_yes_no "Configure SSH keys for GitHub auth/signing?" n; then
     log "Skipping SSH key setup"
     return
   fi
@@ -473,7 +475,7 @@ configure_git() {
   local git_name
   local git_email
 
-  if ! ask_yes_no "Configure git globals from dotfiles?" y; then
+  if ! ask_yes_no "Configure git globals from dotfiles?" n; then
     log "Skipping git config"
     return
   fi
@@ -519,7 +521,7 @@ configure_github_cli() {
     return
   fi
 
-  if ! ask_yes_no "Configure/authenticate GitHub CLI?" y; then
+  if ! ask_yes_no "Configure/authenticate GitHub CLI?" n; then
     log "Skipping GitHub CLI config"
     return
   fi
