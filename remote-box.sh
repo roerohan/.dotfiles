@@ -519,8 +519,61 @@ configure_git() {
   git config --global push.autoSetupRemote true
   git config --global init.defaultBranch main
 
-  warn "SSH signing is not configured on the remote. Use SSH agent forwarding for GitHub auth, or configure signing manually if you need signed commits here."
-  git config --global commit.gpgsign false
+  configure_git_ssh_signing
+}
+
+configure_git_ssh_signing() {
+  # Commit signing via the forwarded SSH agent: no private key on the box. Git
+  # signs by asking ssh-agent (over the forwarded socket) for the key matching
+  # user.signingkey. GPG signing can't work here (the GPG key isn't forwarded),
+  # so default everything off unless the user opts in.
+  local pubkey="" signers_file="$HOME/.ssh/allowed_signers" git_email=""
+
+  if ! ask_yes_no "Enable commit signing via the forwarded SSH agent?" n; then
+    warn "Commit signing disabled on the remote. Enable later with: git config --global commit.gpgsign true (after configuring gpg.format ssh and user.signingkey)."
+    git config --global commit.gpgsign false
+    return
+  fi
+
+  if [ -z "${SSH_AUTH_SOCK:-}" ] || ! command -v ssh-add >/dev/null 2>&1; then
+    warn "No forwarded SSH agent (SSH_AUTH_SOCK unset). Reconnect with 'ssh -A' so the agent is available, then re-run. Leaving signing disabled."
+    git config --global commit.gpgsign false
+    return
+  fi
+
+  # Prefer the first ed25519 key the agent offers; fall back to the first key.
+  pubkey="$(ssh-add -L 2>/dev/null | awk '/^ssh-ed25519 /{print; exit}')"
+  if [ -z "$pubkey" ]; then
+    pubkey="$(ssh-add -L 2>/dev/null | awk 'NF{print; exit}')"
+  fi
+
+  if [ -z "$pubkey" ]; then
+    warn "Forwarded agent has no keys (ssh-add -L empty). Run 'ssh-add' locally and reconnect with 'ssh -A'. Leaving signing disabled."
+    git config --global commit.gpgsign false
+    return
+  fi
+
+  log "Configuring SSH commit signing via forwarded agent"
+  git config --global gpg.format ssh
+  # The full public key literal tells git to sign through the agent for that key,
+  # so no private key file is needed on the box.
+  git config --global user.signingkey "$pubkey"
+  git config --global commit.gpgsign true
+  git config --global tag.gpgsign true
+
+  # allowed_signers lets `git log --show-signature` verify locally on the box.
+  git_email="$(git config --global user.email 2>/dev/null || true)"
+  if [ -n "$git_email" ]; then
+    mkdir -p "$HOME/.ssh"
+    printf '%s %s\n' "$git_email" "$pubkey" > "$signers_file"
+    chmod 600 "$signers_file"
+    git config --global gpg.ssh.allowedSignersFile "$signers_file"
+  else
+    warn "user.email is empty; skipping allowed_signers. Verification (git log --show-signature) may warn until you set it."
+  fi
+
+  log "SSH commit signing enabled. Register this key on GitHub as a SIGNING key (separate from the auth key entry) if not already done."
+  warn "Signing uses the forwarded agent, so 'ssh -A' must be active when you commit. Without it, commits will fail to sign."
 }
 
 configure_github_cli() {
@@ -754,6 +807,10 @@ print_final_instructions() {
   printf 'Then validate on the remote:\n'
   printf '  ssh-add -l\n'
   printf '  ssh -T git@github.com\n\n'
+  printf 'If you enabled SSH commit signing, it also uses the forwarded agent, so keep ssh -A active when committing.\n'
+  printf 'Register the same SSH key on GitHub as a SIGNING key (separate from the auth key entry). Verify with:\n'
+  printf '  git config --global user.signingkey\n'
+  printf '  git commit --allow-empty -m "signing test" && git log --show-signature -1\n\n'
   printf 'If forwarding is disabled by local SSH config, add something like this locally in ~/.ssh/config:\n'
   printf '  Host <remote-alias>\n'
   printf '    HostName <remote-host-or-ip>\n'

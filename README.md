@@ -66,7 +66,7 @@ It copies `zsh/zshrc` to `~/.zshrc` and patches the copied file for Ubuntu inste
 
 It does not create SSH keys on the remote box. Use SSH agent forwarding instead, for example `ssh -A rohan@your-remote-ip`. At the end, the script prints the local and remote commands needed to verify forwarded GitHub SSH auth. Fewer private keys scattered across EC2 like confetti. Radical.
 
-Git config is copied from this repo when needed, then normalized for the remote box: `user.name`, `user.email`, GitHub SSH URL rewriting, default branch, and auto upstream setup. Commit signing is disabled by default on the remote to avoid broken signing config unless you choose to set it up manually.
+Git config is copied from this repo when needed, then normalized for the remote box: `user.name`, `user.email`, GitHub SSH URL rewriting, default branch, and auto upstream setup. Commit signing is disabled by default. You can optionally enable SSH commit signing **via the forwarded agent**: the script reads your public key from `ssh-add -L`, sets `gpg.format ssh` + `user.signingkey` to that key + `commit.gpgsign true`, and writes `~/.ssh/allowed_signers`. No private key ever lands on the box; signing happens on your Mac through the forwarded agent, so keep `ssh -A` active when committing and register that key on GitHub as a *signing* key (separate from the auth entry). GPG signing is intentionally not used remotely since the GPG key isn't forwarded.
 
 Existing files are not overwritten blindly. If a config already matches, it is skipped. If it differs, the script asks before replacing and backs up the old file first. Shocking restraint from a setup script, frankly.
 
