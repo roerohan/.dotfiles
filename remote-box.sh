@@ -144,7 +144,7 @@ install_apt_packages() {
     lsof perl procps jq coreutils \
     rsync \
     xclip xsel wl-clipboard \
-    openssh-client openssh-server
+    openssh-client
 }
 
 install_github_cli() {
@@ -169,18 +169,35 @@ install_github_cli() {
 
 configure_sshd_accept_env() {
   local config_path="/etc/ssh/sshd_config.d/90-llm-env.conf"
+  local sshd_bin=""
 
   if ! ask_yes_no "Allow SSH SendEnv for OpenAI/Anthropic API keys on this box?" n; then
     log "Skipping sshd AcceptEnv setup"
     return
   fi
 
+  if [ -x /usr/sbin/sshd ]; then
+    sshd_bin="/usr/sbin/sshd"
+  elif command -v sshd >/dev/null 2>&1; then
+    sshd_bin="$(command -v sshd)"
+  else
+    log "Installing openssh-server for sshd AcceptEnv support"
+    sudo_cmd apt install -y openssh-server
+    if [ -x /usr/sbin/sshd ]; then
+      sshd_bin="/usr/sbin/sshd"
+    elif command -v sshd >/dev/null 2>&1; then
+      sshd_bin="$(command -v sshd)"
+    fi
+  fi
+
   log "Configuring sshd AcceptEnv for LLM API keys"
   printf 'AcceptEnv OPENAI_API_KEY ANTHROPIC_API_KEY\n' | sudo_cmd tee "$config_path" >/dev/null
   sudo_cmd chmod 644 "$config_path"
 
-  if command -v sshd >/dev/null 2>&1; then
-    sudo_cmd sshd -t
+  if [ -n "$sshd_bin" ]; then
+    sudo_cmd "$sshd_bin" -t
+  else
+    warn "Could not find sshd to validate config. The config was written, but sshd may not be installed. Excellent ambiguity, very on brand."
   fi
 
   if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files ssh.service >/dev/null 2>&1; then
