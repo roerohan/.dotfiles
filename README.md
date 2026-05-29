@@ -62,6 +62,8 @@ The script installs apt dependencies, GitHub CLI (`gh`), Oh My Zsh, nvm/Node LTS
 
 It prompts for `OPENAI_API_KEY` and `ANTHROPIC_API_KEY`, writes them to `~/.zshenv`, copies `zsh/zshrc` to `~/.zshrc`, and patches the copied file for Ubuntu instead of symlinking it. That copy is intentional: the source zshrc still has macOS baggage, because of course it does.
 
+If you prefer session-only API keys, the script can optionally configure remote `sshd` with `AcceptEnv OPENAI_API_KEY ANTHROPIC_API_KEY`. Pair that with local SSH config `SendEnv OPENAI_API_KEY ANTHROPIC_API_KEY`, then connect from a shell where those env vars are exported. Not agent forwarding, but close enough for bearer-token land.
+
 It does not create SSH keys on the remote box. Use SSH agent forwarding instead, for example `ssh -A rohan@your-remote-ip`. At the end, the script prints the local and remote commands needed to verify forwarded GitHub SSH auth. Fewer private keys scattered across EC2 like confetti. Radical.
 
 Git config is copied from this repo when needed, then normalized for the remote box: `user.name`, `user.email`, GitHub SSH URL rewriting, default branch, and auto upstream setup. Commit signing is disabled by default on the remote to avoid broken signing config unless you choose to set it up manually.

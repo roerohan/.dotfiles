@@ -144,7 +144,7 @@ install_apt_packages() {
     lsof perl procps jq coreutils \
     rsync \
     xclip xsel wl-clipboard \
-    openssh-client
+    openssh-client openssh-server
 }
 
 install_github_cli() {
@@ -165,6 +165,31 @@ install_github_cli() {
   printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' "$(dpkg --print-architecture)" | sudo_cmd tee /etc/apt/sources.list.d/github-cli.list >/dev/null
   sudo_cmd apt update
   sudo_cmd apt install -y gh
+}
+
+configure_sshd_accept_env() {
+  local config_path="/etc/ssh/sshd_config.d/90-llm-env.conf"
+
+  if ! ask_yes_no "Allow SSH SendEnv for OpenAI/Anthropic API keys on this box?" n; then
+    log "Skipping sshd AcceptEnv setup"
+    return
+  fi
+
+  log "Configuring sshd AcceptEnv for LLM API keys"
+  printf 'AcceptEnv OPENAI_API_KEY ANTHROPIC_API_KEY\n' | sudo_cmd tee "$config_path" >/dev/null
+  sudo_cmd chmod 644 "$config_path"
+
+  if command -v sshd >/dev/null 2>&1; then
+    sudo_cmd sshd -t
+  fi
+
+  if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files ssh.service >/dev/null 2>&1; then
+    sudo_cmd systemctl reload ssh
+  elif command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files sshd.service >/dev/null 2>&1; then
+    sudo_cmd systemctl reload sshd
+  else
+    warn "Could not reload sshd automatically. Run: sudo systemctl reload ssh"
+  fi
 }
 
 clone_or_update_dotfiles() {
@@ -666,7 +691,6 @@ Check:
 - zsh parses ~/.zshrc without Bash shopt errors
 - ~/.zshrc does not source ~/.bashrc
 - ~/.zshrc uses Linux paths for nvm, zsh-syntax-highlighting, zsh-autosuggestions, GPG_TTY, bun, and pnpm
-- tmux config loads from ~/.tmux.conf
 - if configured, tmux config loads from ~/.tmux.conf
 - if configured, Neovim config exists at ~/.config/nvim and links repo plugins
 - if configured, OpenCode global config, AGENTS.md, and skills are wired under ~/.config/opencode
@@ -697,12 +721,17 @@ print_final_instructions() {
   printf '    User %s\n' "$USER"
   printf '    ForwardAgent yes\n\n'
   printf 'If GitHub CLI auth is not set yet and you want it, run:\n  gh auth login -h github.com -p ssh -w\n\n'
+  printf 'To forward OpenAI/Anthropic API keys per SSH session, add this locally in ~/.ssh/config:\n'
+  printf '  Host <remote-alias>\n'
+  printf '    SendEnv OPENAI_API_KEY ANTHROPIC_API_KEY\n\n'
+  printf 'Then connect from a shell where those env vars are exported. The remote sshd must allow AcceptEnv; this script can configure that when you opt in.\n\n'
   printf 'Restart your shell with:\n  exec zsh -l\n'
 }
 
 main() {
   install_apt_packages
   install_github_cli
+  configure_sshd_accept_env
   clone_or_update_dotfiles
   install_oh_my_zsh
   install_nvm_node
