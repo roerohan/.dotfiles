@@ -58,7 +58,7 @@ Paste this into a fresh Ubuntu remote box to install the shell/editor/agent setu
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
 ```
 
-The script installs apt dependencies, GitHub CLI (`gh`), Oh My Zsh, nvm/Node LTS, Bun, OpenCode, tmux config, AstroNvim config, the sbx `opencode-config` kit, and this repo under `~/dotfiles`.
+The script installs apt dependencies, the latest stable Neovim (from the official GitHub release tarball, not the ancient apt one), GitHub CLI (`gh`), Oh My Zsh, nvm/Node LTS, Bun, OpenCode, tmux config, AstroNvim config, the sbx `opencode-config` kit, and this repo under `~/dotfiles`. Pin a specific Neovim with `NEOVIM_VERSION=v0.11.0`.
 
 It copies `zsh/zshrc` to `~/.zshrc` and patches the copied file for Ubuntu instead of symlinking it. That copy is intentional: the source zshrc still has macOS baggage, because of course it does.
 
@@ -82,6 +82,7 @@ Useful overrides:
 DOTFILES_DIR=~/src/dotfiles \
 DOTFILES_REPO=https://github.com/roerohan/.dotfiles.git \
 OPENCODE_VALIDATE_MODEL=anthropic/claude-sonnet-4-6 \
+NEOVIM_VERSION=v0.11.0 \
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
 ```
 

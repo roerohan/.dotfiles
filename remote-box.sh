@@ -5,6 +5,7 @@ set -Eeuo pipefail
 DOTFILES_REPO="${DOTFILES_REPO:-https://github.com/roerohan/.dotfiles.git}"
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 NVM_VERSION="${NVM_VERSION:-v0.40.3}"
+NEOVIM_VERSION="${NEOVIM_VERSION:-latest}"
 
 log() {
   printf '\n==> %s\n' "$*"
@@ -120,7 +121,7 @@ install_apt_packages() {
   sudo_cmd apt update
   sudo_cmd apt install -y \
     git curl ca-certificates gnupg build-essential pkg-config \
-    zsh tmux neovim \
+    zsh tmux \
     ripgrep fd-find fzf direnv \
     zsh-syntax-highlighting zsh-autosuggestions \
     unzip tar gzip xz-utils \
@@ -150,6 +151,70 @@ install_github_cli() {
   printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' "$(dpkg --print-architecture)" | sudo_cmd tee /etc/apt/sources.list.d/github-cli.list >/dev/null
   sudo_cmd apt update
   sudo_cmd apt install -y gh
+}
+
+install_neovim() {
+  # Ubuntu's apt neovim is ancient (0.9.x) and too old for AstroNvim v4, which
+  # needs Neovim >= 0.10. Install the official static tarball instead.
+  local arch="" nvim_arch="" tag="" url="" tmp="" dest="/opt"
+
+  if command -v nvim >/dev/null 2>&1; then
+    local current=""
+    current="$(nvim --version 2>/dev/null | head -1 | sed -E 's/^NVIM v?//')"
+    # Skip only when current >= 0.10.0: lowest of {0.10.0, current} must be 0.10.0.
+    if [ -n "$current" ] && [ "$(printf '0.10.0\n%s\n' "$current" | sort -V | head -1)" = "0.10.0" ]; then
+      log "Neovim $current already installed and recent enough; skipping"
+      return
+    fi
+    log "Existing Neovim ${current:-unknown} is too old for AstroNvim v4; installing latest"
+  fi
+
+  arch="$(uname -m)"
+  case "$arch" in
+    x86_64|amd64) nvim_arch="x86_64" ;;
+    aarch64|arm64) nvim_arch="arm64" ;;
+    *) warn "Unsupported architecture '$arch' for Neovim tarball install; falling back to apt neovim"
+       sudo_cmd apt install -y neovim || warn "apt neovim install failed too"
+       return ;;
+  esac
+
+  if [ "$NEOVIM_VERSION" = "latest" ]; then
+    tag="$(curl -fsSL https://api.github.com/repos/neovim/neovim/releases/latest | jq -r '.tag_name')"
+    if [ -z "$tag" ] || [ "$tag" = "null" ]; then
+      warn "Could not resolve latest Neovim tag from GitHub API; falling back to 'stable'"
+      tag="stable"
+    fi
+  else
+    tag="$NEOVIM_VERSION"
+  fi
+
+  url="https://github.com/neovim/neovim/releases/download/${tag}/nvim-linux-${nvim_arch}.tar.gz"
+  log "Installing Neovim ${tag} (${nvim_arch}) from $url"
+
+  tmp="$(mktemp -d)"
+  if ! curl -fsSL "$url" -o "$tmp/nvim.tar.gz"; then
+    warn "Failed to download Neovim ${tag}; falling back to apt neovim"
+    rm -rf "$tmp"
+    sudo_cmd apt install -y neovim || warn "apt neovim install failed too"
+    return
+  fi
+
+  tar -xzf "$tmp/nvim.tar.gz" -C "$tmp"
+  local extracted=""
+  extracted="$(find "$tmp" -maxdepth 1 -type d -name 'nvim-linux-*' | head -1)"
+  if [ -z "$extracted" ]; then
+    warn "Unexpected Neovim tarball layout; falling back to apt neovim"
+    rm -rf "$tmp"
+    sudo_cmd apt install -y neovim || warn "apt neovim install failed too"
+    return
+  fi
+
+  sudo_cmd rm -rf "$dest/nvim"
+  sudo_cmd mv "$extracted" "$dest/nvim"
+  sudo_cmd ln -sf "$dest/nvim/bin/nvim" /usr/local/bin/nvim
+  rm -rf "$tmp"
+
+  log "Neovim installed: $(/usr/local/bin/nvim --version | head -1)"
 }
 
 configure_sshd_accept_env() {
@@ -696,6 +761,7 @@ print_final_instructions() {
 
 main() {
   install_apt_packages
+  install_neovim
   install_github_cli
   configure_sshd_accept_env
   clone_or_update_dotfiles
