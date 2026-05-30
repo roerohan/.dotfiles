@@ -831,6 +831,7 @@ print_final_instructions() {
   printf '  printenv GITHUB_TOKEN >/dev/null && echo GITHUB_TOKEN present\n'
   printf '  gh auth status\n\n'
   printf 'If you would rather not forward a token, you can still log in on the box (token is then stored there):\n  gh auth login -h github.com -p ssh -w\n\n'
+  printf 'Shared-box caution: forwarded secrets live in your env and are readable via /proc by the same user/root. On a multi-user box prefer separate Linux users; use a private 700 tmux socket; and unset/tmux setenv -u secrets after launching long tasks.\n\n'
   printf 'Restart your shell with:\n  exec zsh -l\n'
 }
 
