@@ -262,3 +262,6 @@ sbx-opencode() {
   sbx run opencode --kit ~/.config/sbx-kits/opencode-config/ "${args[@]}"
 }
 alias sbxoc='sbx-opencode'
+
+# Added by git-ai installer on Sat May 23 14:38:09 IST 2026
+export PATH="/Users/rmukherjee/.git-ai/bin:$PATH"
