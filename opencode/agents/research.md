@@ -1,7 +1,7 @@
 ---
 description: Researches codebases, libraries, architecture, and documentation. Use for deep exploration without making changes.
 mode: primary
-model: anthropic/claude-opus-4-6
+model: openai/gpt-5.6-sol
 temperature: 0.1
 permission:
   "*": deny
