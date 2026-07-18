@@ -352,6 +352,9 @@ tmux_conf_copy_to_os_clipboard=false
 # -- user customizations -------------------------------------------------------
 # this is the place to override or undo settings
 
+# allow OSC 52 clipboard sequences from applications such as OpenCode
+set -g allow-passthrough on
+
 # increase history size
 #set -g history-limit 10000
 
