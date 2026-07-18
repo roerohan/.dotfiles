@@ -354,6 +354,9 @@ tmux_conf_copy_to_os_clipboard=false
 
 # allow OSC 52 clipboard sequences from applications such as OpenCode
 set -g allow-passthrough on
+set -s set-clipboard on
+set -as terminal-features ',screen*:clipboard'
+set -as terminal-features ',tmux*:clipboard'
 
 # increase history size
 #set -g history-limit 10000
