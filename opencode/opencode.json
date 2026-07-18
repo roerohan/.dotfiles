@@ -4,6 +4,9 @@
   "plugin": [
     "@plannotator/opencode@latest"
   ],
+  "experimental": {
+    "primary_tools": ["task"]
+  },
   "model": "openai/gpt-5.6-sol",
   "provider": {
     "openai": {
