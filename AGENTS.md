@@ -43,5 +43,6 @@
 ## Dotfile Safety
 
 - Prefer editing repo files over mutating `$HOME`; install/setup snippets in README files often create symlinks or change shell config.
+- Never symlink or overwrite `~/.zshenv`. `zsh/zshenv` is a secrets-free starter copy; the live file stays local and may contain secrets.
 - Do not normalize all config files to one style. This repo intentionally mixes TOML, YAML, Lua, shell, and terminal/window-manager config formats.
 - Existing contribution guidance says PRs target `dev` and commit messages use prefixes like `feat:`, `fix:`, `refactor:`, `docs:`, and `lint:`.

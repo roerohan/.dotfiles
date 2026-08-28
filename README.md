@@ -36,10 +36,10 @@ Other tool directories remain at root when they are shared, active, or easier to
 Tracked config files are the source of truth. New setups should create absolute symbolic links from the expected home location back into this clone:
 
 ```sh
-ln -s "$HOME/Documents/Repos/dotfiles/ghostty/config" "$HOME/.config/ghostty/config"
+ln -s "$HOME/Documents/Repos/dotfiles/ghostty" "$HOME/.config/ghostty"
 ```
 
-Never replace a conflicting file blindly. Inspect it, back it up, then create the symlink. Do not copy tracked configs into `$HOME`; copied files drift between devices with remarkable efficiency.
+Never replace a conflicting file blindly. Inspect it, back it up, then create the symlink. `~/.zshenv` is the deliberate exception: copy the safe tracked baseline once, keep the live file local, and never commit its future secrets.
 
 ## Linux
 

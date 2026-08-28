@@ -40,13 +40,9 @@ The current known app list is:
 
 Install the selected applications only. Prefer Homebrew and skip healthy existing installations.
 
-## Known Starting Point
-
-The 2026 laptop bootstrap began with Homebrew, Google Chrome, Ghostty, OpenCode, and ChatGPT already installed. OpenCode was authenticated through Cloudflare AI Gateway. Authentication material is intentionally not documented or copied.
-
 ## Install Software
 
-Confirm Apple Command Line Tools are available, then install the current packages:
+Assume Homebrew is the only installed setup tool. Confirm Apple Command Line Tools are available, then install every selected command and application rather than assuming anything else exists:
 
 ```sh
 xcode-select -p
@@ -58,7 +54,7 @@ brew install --cask font-jetbrains-mono-nerd-font
 brew install --cask ghostty google-chrome chatgpt t3-code whatsapp slack spotify raycast claude-code codex cursor
 ```
 
-Treat the commands above as the full-selection example, not permission to ignore the app-selection answer. Ghostty, Chrome, OpenCode, and ChatGPT can also be installed with Homebrew when absent. Do not reinstall applications that are already healthy merely to make the command list prettier.
+Treat the commands above as the full-selection example, not permission to ignore the app-selection answer. Do not reinstall applications that are already healthy merely to make the command list prettier.
 
 When Cursor is selected, install its Agent CLI too. Homebrew does not package it, so use Cursor's official installer; it provides both `agent` and `cursor-agent` under `~/.local/bin`:
 
@@ -73,24 +69,36 @@ Repository-managed configs must be symlinked, not copied. Use absolute targets f
 
 ```sh
 DOTFILES="$HOME/Documents/Repos/dotfiles"
-mkdir -p ~/.config/aerospace ~/.config/ghostty ~/.config/jj ~/.config/opencode ~/.nvm
-ln -s "$DOTFILES/aerospace/aerospace.toml" ~/.config/aerospace/aerospace.toml
-ln -s "$DOTFILES/ghostty/config" ~/.config/ghostty/config
-ln -s "$DOTFILES/jj/config.toml" ~/.config/jj/config.toml
-ln -s "$DOTFILES/opencode/opencode.json" ~/.config/opencode/opencode.json
-ln -s "$DOTFILES/opencode/tui.json" ~/.config/opencode/tui.json
-ln -s "$DOTFILES/opencode/agents" ~/.config/opencode/agents
-ln -s "$DOTFILES/opencode/commands" ~/.config/opencode/commands
-ln -s "$DOTFILES/opencode/plugins" ~/.config/opencode/plugins
-ln -s "$DOTFILES/opencode/skills" ~/.config/opencode/skills
+mkdir -p ~/.config ~/.nvm
+ln -s "$DOTFILES/aerospace" ~/.config/aerospace
+ln -s "$DOTFILES/ghostty" ~/.config/ghostty
+ln -s "$DOTFILES/jj" ~/.config/jj
+ln -s "$DOTFILES/opencode" ~/.config/opencode
 ln -s "$DOTFILES/tmux/tmux.conf" ~/.tmux.conf
 ln -s "$DOTFILES/tmux/tmux.conf.local" ~/.tmux.conf.local
 ln -s "$DOTFILES/gitconfig" ~/.gitconfig
 ln -s "$DOTFILES/zsh/zshrc" ~/.zshrc
-ln -s "$DOTFILES/zsh/zshenv" ~/.zshenv
 ```
 
-If a destination exists, inspect it first. When it is a copied version of the tracked config, back it up or remove it only after confirming the repository version is correct, then replace it with `ln -s`. Leave authentication, caches, generated package files, and `node_modules` untracked and local.
+If `~/.zshenv` does not exist, copy the tracked safe baseline once and keep the live file local because it may later contain secrets:
+
+```sh
+if [ ! -e "$HOME/.zshenv" ]; then
+  cp "$DOTFILES/zsh/zshenv" "$HOME/.zshenv"
+  chmod 600 "$HOME/.zshenv"
+fi
+```
+
+If another destination exists, inspect it first. When it is a copied version of the tracked config, back it up or remove it only after confirming the repository version is correct, then replace it with `ln -s`. Leave `~/.zshenv`, authentication, caches, generated files, and `node_modules` local. Never copy secrets from the live `~/.zshenv` back into the repository baseline.
+
+## Authenticate OpenCode
+
+Authenticate the new OpenCode installation through Cloudflare AI Gateway using the interactive provider flow. Keep generated credentials local and untracked:
+
+```sh
+opencode auth login
+opencode auth list
+```
 
 ## Shell And Node
 
