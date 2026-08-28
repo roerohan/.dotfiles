@@ -2,6 +2,18 @@
 
 This is the preferred runbook for configuring a new Mac with this repository. It is written for an agent to execute end to end; the scripts remain useful fallbacks, not the primary source of truth.
 
+## Clone The Repository
+
+Use this exact location so config links are consistent across Macs:
+
+```sh
+mkdir -p "$HOME/Documents/Repos"
+git clone git@github.com:roerohan/.dotfiles.git "$HOME/Documents/Repos/dotfiles"
+cd "$HOME/Documents/Repos/dotfiles"
+```
+
+If SSH authentication is not ready, clone over HTTPS and keep the same destination path. Do not create a second clone elsewhere once SSH is configured.
+
 ## Owner Preferences
 
 - Prefer Homebrew formulae and casks for software installation. Use another installer only when Homebrew has no suitable package, and say why.
@@ -41,9 +53,9 @@ xcode-select -p
 brew tap nikitabobko/tap
 brew trust --cask nikitabobko/tap/aerospace
 brew install --cask nikitabobko/tap/aerospace
-brew install neovim tmux tmuxinator nvm fzf direnv zsh-syntax-highlighting zsh-autosuggestions fd lazygit tree-sitter-cli bun codex
+brew install neovim tmux tmuxinator nvm fzf direnv zsh-syntax-highlighting zsh-autosuggestions fd lazygit tree-sitter-cli bun gh jj anomalyco/tap/opencode
 brew install --cask font-jetbrains-mono-nerd-font
-brew install --cask whatsapp slack spotify raycast claude-code cursor
+brew install --cask ghostty google-chrome chatgpt t3-code whatsapp slack spotify raycast claude-code codex cursor
 ```
 
 Treat the commands above as the full-selection example, not permission to ignore the app-selection answer. Ghostty, Chrome, OpenCode, and ChatGPT can also be installed with Homebrew when absent. Do not reinstall applications that are already healthy merely to make the command list prettier.
@@ -57,13 +69,20 @@ cursor-agent --version
 
 ## Link Configs
 
-Use absolute symlink targets based on the actual clone location:
+Repository-managed configs must be symlinked, not copied. Use absolute targets from the canonical clone location:
 
 ```sh
 DOTFILES="$HOME/Documents/Repos/dotfiles"
-mkdir -p ~/.config/aerospace ~/.config/ghostty ~/.nvm
+mkdir -p ~/.config/aerospace ~/.config/ghostty ~/.config/jj ~/.config/opencode ~/.nvm
 ln -s "$DOTFILES/aerospace/aerospace.toml" ~/.config/aerospace/aerospace.toml
 ln -s "$DOTFILES/ghostty/config" ~/.config/ghostty/config
+ln -s "$DOTFILES/jj/config.toml" ~/.config/jj/config.toml
+ln -s "$DOTFILES/opencode/opencode.json" ~/.config/opencode/opencode.json
+ln -s "$DOTFILES/opencode/tui.json" ~/.config/opencode/tui.json
+ln -s "$DOTFILES/opencode/agents" ~/.config/opencode/agents
+ln -s "$DOTFILES/opencode/commands" ~/.config/opencode/commands
+ln -s "$DOTFILES/opencode/plugins" ~/.config/opencode/plugins
+ln -s "$DOTFILES/opencode/skills" ~/.config/opencode/skills
 ln -s "$DOTFILES/tmux/tmux.conf" ~/.tmux.conf
 ln -s "$DOTFILES/tmux/tmux.conf.local" ~/.tmux.conf.local
 ln -s "$DOTFILES/gitconfig" ~/.gitconfig
@@ -71,7 +90,7 @@ ln -s "$DOTFILES/zsh/zshrc" ~/.zshrc
 ln -s "$DOTFILES/zsh/zshenv" ~/.zshenv
 ```
 
-If a destination exists, inspect it first. Back it up before replacement unless it is already the correct symlink.
+If a destination exists, inspect it first. When it is a copied version of the tracked config, back it up or remove it only after confirming the repository version is correct, then replace it with `ln -s`. Leave authentication, caches, generated package files, and `node_modules` untracked and local.
 
 ## Shell And Node
 
@@ -116,6 +135,13 @@ Set Git's signing format to SSH, point `user.signingkey` at the public key, and 
 
 Register the same public key with GitHub as a signing key in addition to its authentication-key registration. Test with a disposable signed commit and require a `Good "git" signature` result.
 
+Authenticate GitHub CLI separately and retain SSH as its Git transport:
+
+```sh
+gh auth login --hostname github.com --git-protocol ssh --web --skip-ssh-key
+gh auth status
+```
+
 ## Reload And Verify
 
 Reload Ghostty with `Cmd+Shift+,`; some visual settings require opening a new terminal surface, and background opacity requires a full restart on macOS. Do not terminate an agent's active terminal session just to demonstrate enthusiasm.
@@ -130,4 +156,7 @@ nvim --headless +qa
 aerospace config --config-path
 /Applications/Ghostty.app/Contents/MacOS/ghostty +show-config --default=false
 git config --global --list --show-origin
+gh auth status
+jj --version
+opencode debug config
 ```

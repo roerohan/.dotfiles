@@ -4,6 +4,18 @@
   "plugin": [
     "@plannotator/opencode@latest"
   ],
+  "mcp": {
+    "proximal-executor": {
+      "type": "remote",
+      "url": "https://executor.sh/proximal/mcp",
+      "enabled": true
+    },
+    "personal-executor": {
+      "type": "remote",
+      "url": "https://executor.sh/rohan-mukherjee-s-organization/mcp",
+      "enabled": true
+    }
+  },
   "experimental": {
     "primary_tools": ["task"]
   },

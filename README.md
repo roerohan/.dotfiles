@@ -1,177 +1,60 @@
-[![Issues][issues-shield]][issues-url]
+# dotfiles
 
-<!-- PROJECT LOGO -->
-<br />
-<p align="center">
-  <!-- <a href="https://github.com/roerohan/.dotfiles">
-    <img src="https://project-logo.png" alt="Logo" width="80">
-  </a> -->
+Personal configuration for macOS, shared command-line tools, and retained Linux desktop environments. The repository stays mostly flat by tool so configs remain easy to find; Linux-only desktop files live under `linux/`.
 
-  <h3 align="center">.dotfiles</h3>
+## One-Line Mac Setup
 
-  <p align="center">
-    Configuration files for macOS and Linux systems.
-    <br />
-    <a href="https://github.com/roerohan/.dotfiles"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/roerohan/.dotfiles">View Demo</a>
-    ·
-    <a href="https://github.com/roerohan/.dotfiles/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/roerohan/.dotfiles/issues">Request Feature</a>
-  </p>
-</p>
+Paste this into a vibecoding agent on a new Mac:
 
+> Clone `https://github.com/roerohan/.dotfiles.git` into `~/Documents/Repos/dotfiles`, read `AGENTS.md` and `MACOS_SETUP.md`, ask me which default-selected applications I want, then set up the Mac end to end using latest stable Homebrew packages, back up conflicting files, use `ln -s` to link repository-managed configs into `~/.config` or their required home paths instead of copying them, and verify every installation and link.
 
+The full agent-first procedure is [`MACOS_SETUP.md`](MACOS_SETUP.md). Repository-specific instructions and durable preferences live in [`AGENTS.md`](AGENTS.md).
 
-<!-- TABLE OF CONTENTS -->
-## Table of Contents
+## Layout
 
-* [About the Project](#about-the-project)
-* [Getting Started](#getting-started)
-  * [Prerequisites](#prerequisites)
-  * [Installation](#installation)
-* [Usage](#usage)
-* [Roadmap](#roadmap)
-* [Contributing](#contributing)
-* [License](#license)
-* [Contributors](#contributors-)
+```text
+dotfiles/
+├── aerospace/       # macOS window manager
+├── ghostty/         # terminal configuration
+├── jj/              # Jujutsu configuration
+├── lazygit/         # Lazygit configuration
+├── nvim/            # AstroNvim configuration and fallback setup
+├── opencode/        # OpenCode configuration, agents, skills, and plugins
+├── tmux/            # tmux configuration
+├── tmuxinator/      # tmuxinator notes
+├── zsh/             # shell configuration
+├── linux/           # Linux-only desktop and system configuration
+├── sbx/             # sandbox kits
+├── MACOS_SETUP.md   # primary new-Mac runbook
+└── remote-box.sh    # Ubuntu remote-box fallback bootstrap
+```
 
+Other tool directories remain at root when they are shared, active, or easier to discover there. Historical configurations are retained until deliberately archived; old does not automatically mean disposable.
 
+## Linking Policy
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+Tracked config files are the source of truth. New setups should create absolute symbolic links from the expected home location back into this clone:
 
-This repository consists of configuration files for my macOS and Linux systems.
+```sh
+ln -s "$HOME/Documents/Repos/dotfiles/ghostty/config" "$HOME/.config/ghostty/config"
+```
 
-For a new Mac, use the agent-executable [`MACOS_SETUP.md`](MACOS_SETUP.md) runbook. It is the primary setup path; historical scripts remain fallbacks.
+Never replace a conflicting file blindly. Inspect it, back it up, then create the symlink. Do not copy tracked configs into `$HOME`; copied files drift between devices with remarkable efficiency.
 
-<!-- GETTING STARTED -->
-## Getting Started
+## Linux
 
-To get a local copy up and running follow these simple steps.
-
-### Remote Ubuntu Bootstrap
-
-Paste this into a fresh Ubuntu remote box to install the shell/editor/agent setup and clone this repo:
+Linux-only desktop configs are grouped under [`linux/`](linux/). The Ubuntu remote-agent bootstrap remains [`remote-box.sh`](remote-box.sh):
 
 ```sh
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
 ```
 
-The script installs apt dependencies, the latest stable Neovim (from the official GitHub release tarball, not the ancient apt one), GitHub CLI (`gh`), Oh My Zsh, nvm/Node LTS, Bun, OpenCode, tmux config, AstroNvim config, the sbx `opencode-config` kit, and this repo under `~/dotfiles`. Pin a specific Neovim with `NEOVIM_VERSION=v0.11.0`.
+The Manjaro package snapshot is retained at [`linux/package_list.txt`](linux/package_list.txt) for reference rather than treated as a current universal install manifest.
 
-It copies `zsh/zshrc` to `~/.zshrc` and patches the copied file for Ubuntu instead of symlinking it. That copy is intentional: the source zshrc still has macOS baggage, because of course it does.
-
-`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `GITHUB_TOKEN` are never stored on the box. The script reads them from the session environment (forwarded via SSH `SendEnv`/`AcceptEnv`): OpenCode picks up the API keys from `env` at runtime, and `gh` reads `GITHUB_TOKEN` directly (the script also sets `gh config set git_protocol ssh` so git stays on the forwarded agent). The script can optionally configure remote `sshd` with `AcceptEnv OPENAI_API_KEY ANTHROPIC_API_KEY GITHUB_TOKEN`; pair that with local SSH config `SendEnv OPENAI_API_KEY ANTHROPIC_API_KEY GITHUB_TOKEN` and connect from a shell where those vars are exported. No secrets on disk, no `~/.zshenv` exports, no `gh auth login` on the box, no prompting. Session-scoped secrets, the way the gods intended.
-
-Shared-box caution: forwarded secrets sit in your process environment and are readable via `/proc/<pid>/environ` by the same Linux user and by root — tmux just makes casual snooping a one-command `attach` away. On a multi-user box, prefer separate Linux users (the only real isolation), use a private `700` tmux socket (`tmux -S ~/.tmux/private.sock`), and once a long task has the secret, `unset` it and clear the tmux server copy with `tmux setenv -u VAR` so it isn't sitting in every future pane.
-
-It does not create SSH keys on the remote box. Use SSH agent forwarding instead, for example `ssh -A rohan@your-remote-ip`. At the end, the script prints the local and remote commands needed to verify forwarded GitHub SSH auth. Fewer private keys scattered across EC2 like confetti. Radical.
-
-Git config is copied from this repo when needed, then normalized for the remote box: `user.name`, `user.email`, GitHub SSH URL rewriting, default branch, and auto upstream setup. Commit signing is disabled by default. You can optionally enable SSH commit signing **via the forwarded agent**: the script reads your public key from `ssh-add -L`, sets `gpg.format ssh` + `user.signingkey` to that key + `commit.gpgsign true`, and writes `~/.ssh/allowed_signers`. No private key ever lands on the box; signing happens on your Mac through the forwarded agent, so keep `ssh -A` active when committing and register that key on GitHub as a *signing* key (separate from the auth entry). GPG signing is intentionally not used remotely since the GPG key isn't forwarded.
-
-Existing files are not overwritten blindly. If a config already matches, it is skipped. If it differs, the script asks before replacing and backs up the old file first. Shocking restraint from a setup script, frankly.
-
-Most configuration steps are optional. GitHub CLI install/auth and Git globals default to skip unless you opt in. You can also skip tmux links, OpenCode config, sbx kit setup, zshrc copy, and Neovim setup, then handle them manually later if you prefer artisanal suffering.
-
-OpenCode is configured broadly for remote-box work: normal read/edit/bash/tool usage is allowed, while `.env` files, `~/.zshenv`, `~/.npmrc`, `~/.netrc`, secret directories, private keys, SSH/AWS/GCP/GPG/Kube material, and OpenCode auth files stay denied. Obvious shell-based secret reads like `env`, `printenv`, and `cat ~/.zshenv` are denied too; this is a convenience guard, not a military-grade sandbox. Shocking, I know.
-
-At the end, the script validates locally with `zsh -n`, `opencode debug config`, git identity checks, tmux config loading, and a headless Neovim startup. It also runs `opencode run` to inspect the completed setup and return a PASS/FAIL report.
-
-Useful overrides:
-
-```sh
-DOTFILES_DIR=~/src/dotfiles \
-DOTFILES_REPO=https://github.com/roerohan/.dotfiles.git \
-OPENCODE_VALIDATE_MODEL=anthropic/claude-sonnet-4-6 \
-NEOVIM_VERSION=v0.11.0 \
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
-```
-
-Skip the final OpenCode validation when API keys are not ready:
-
-```sh
-RUN_OPENCODE_VALIDATE=0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
-```
-
-Force the final OpenCode validation even when no `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` is loaded:
-
-```sh
-OPENCODE_FORCE_VALIDATE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/roerohan/.dotfiles/main/remote-box.sh)"
-```
-
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-```sh
-npm install npm@latest -g
-```
-
-### Installation
-  
-1. Clone the Repo
-```sh
-git clone https://github.com/roerohan/.dotfiles.git
-```
-2. Install NPM packages
-```sh
-npm install
-```
-
-### jj Setup
-
-1. Install `jj` by following the official instructions:
-   ```sh
-   brew install jj
-   ```
-
-2. Configure `jj` with your preferences or default configuration.
-   
-   For more details on configuration, refer to the [jj documentation](https://github.com/martinvonz/jj).
-
-
-
-
-<!-- USAGE EXAMPLES -->
-## Usage
-
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-See the [open issues](https://github.com/roerohan/.dotfiles/issues) for a list of proposed features (and known issues).
-
-
-
-<!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Use prefixed commit messages such as `feat:`, `fix:`, `refactor:`, `docs:`, and `lint:`. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'feat: Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-You are requested to follow the contribution guidelines specified in [CONTRIBUTING.md](./CONTRIBUTING.md) while contributing to the project :smile:.
-
-<!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See [`LICENSE`](./LICENSE) for more information.
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[roerohan-url]: https://roerohan.github.io
-[issues-shield]: https://img.shields.io/github/issues/roerohan/.dotfiles.svg?style=flat-square
-[issues-url]: https://github.com/roerohan/.dotfiles/issues
+See [`LICENSE`](LICENSE).

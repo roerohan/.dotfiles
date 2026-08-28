@@ -8,9 +8,9 @@
 
 ## Repo Shape
 
-- This is a personal dotfiles repo, not an app repo. Most directories are tool configs to copy or symlink into `$HOME`.
-- The root `README.md` still has template/boilerplate npm setup text; there is no root `package.json`, so do not run `npm install` at repo root just because the README says so.
-- macOS-specific configs are real here (`aerospace/`, `ghostty/`, `jj/`), despite the root README saying Linux.
+- This is a personal dotfiles repo, not an app repo. Most root directories are active macOS or shared tool configs to symlink into `$HOME`.
+- Linux-only desktop and system configuration lives under `linux/`; do not use it during a macOS setup.
+- There is no root `package.json`; OpenCode dependencies belong under `opencode/`.
 
 ## High-Value Commands
 
