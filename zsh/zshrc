@@ -72,7 +72,7 @@ ZSH_THEME="ys"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git)
 
-source $ZSH/oh-my-zsh.sh
+[[ -r "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
 
 # User configuration
 
@@ -152,13 +152,11 @@ if [[ -z "${chpwd_functions[(r)_direnv_hook]+1}" ]]; then
   chpwd_functions=( _direnv_hook ${chpwd_functions[@]} )
 fi
 
-source ~/.bashrc
-source ~/.zshenv
-export GPG_TTY=/dev/ttys001
+[[ -r "$HOME/.bashrc" ]] && source "$HOME/.bashrc"
+export GPG_TTY="$(tty)"
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# This should be after .zshenv
 set_npm_token_based_on_dir() {
   case "$PWD" in
     */Documents/Repos/cloudflare*)
@@ -197,14 +195,14 @@ chpwd_functions+=(set_npm_token_based_on_dir)
 set_npm_token_based_on_dir
 
 # bun completions
-[ -s "/Users/rmukherjee/.bun/_bun" ] && source "/Users/rmukherjee/.bun/_bun"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # pnpm
-export PNPM_HOME="/Users/rmukherjee/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -264,4 +262,4 @@ sbx-opencode() {
 alias sbxoc='sbx-opencode'
 
 # Added by git-ai installer on Sat May 23 14:38:09 IST 2026
-export PATH="/Users/rmukherjee/.git-ai/bin:$PATH"
+export PATH="$HOME/.git-ai/bin:$PATH"

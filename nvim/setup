@@ -1,4 +1,6 @@
 #!/bin/bash
 
-cd ./AstroNvim/v4/
-./setup
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "$SCRIPT_DIR/AstroNvim/v6/setup"

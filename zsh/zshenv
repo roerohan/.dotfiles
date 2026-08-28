@@ -1,0 +1,9 @@
+export PATH="$HOME/.local/bin:$PATH"
+export EDITOR="/opt/homebrew/bin/nvim"
+
+alias vim="nvim"
+alias mux="tmuxinator"
+alias oc="opencode"
+alias cddyte="cd $HOME/Documents/Repos/dyte"
+alias cdcf="cd $HOME/Documents/Repos/cloudflare"
+alias cdpx="cd $HOME/Documents/Repos/proximal"

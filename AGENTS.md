@@ -8,15 +8,16 @@
 
 ## Repo Shape
 
-- This is a personal dotfiles repo, not an app repo. Most directories are tool configs to copy or symlink into `$HOME`.
-- The root `README.md` still has template/boilerplate npm setup text; there is no root `package.json`, so do not run `npm install` at repo root just because the README says so.
-- macOS-specific configs are real here (`aerospace/`, `ghostty/`, `jj/`), despite the root README saying Linux.
+- This is a personal dotfiles repo, not an app repo. Most root directories are active macOS or shared tool configs to symlink into `$HOME`.
+- Linux-only desktop and system configuration lives under `linux/`; do not use it during a macOS setup.
+- There is no root `package.json`; OpenCode dependencies belong under `opencode/`.
 
 ## High-Value Commands
 
 - OpenCode deps live in `opencode/`: run `npm install` there if changing `opencode/package.json` or plugin dependencies.
 - Sandbox OpenCode config sync lives at `sbx/opencode-config/sync.sh`; run it before `sbx run` when config changes need to be copied into the sandbox.
-- Neovim setup entrypoint is `nvim/setup`, which delegates to `nvim/AstroNvim/v4/setup`.
+- The agent-first macOS runbook is `MACOS_SETUP.md`. Follow it instead of guessing from historical scripts or the stale root README.
+- Neovim setup entrypoint is `nvim/setup`, which delegates to `nvim/AstroNvim/v6/setup`.
 
 ## OpenCode Config
 
@@ -27,12 +28,21 @@
 
 ## Neovim
 
-- AstroNvim has historical `v2/`, `v3/`, and current `v4/` directories; `nvim/setup` uses `v4`.
-- Many `nvim/AstroNvim/v4/plugins/*.lua` files are disabled templates when they start with `if true then return {} end`; do not assume those settings are active.
-- `nvim/AstroNvim/v4/setup` moves existing `~/.config/nvim` to a random backup name, clones AstroNvim template, then symlinks this repo's `plugins` directory. Ask before running it; it mutates the user's home config.
+- AstroNvim has historical `v2/`, `v3/`, and `v4/` directories; current config lives under `v6/`.
+- Check AstroNvim upstream before future installs and use the latest stable major rather than trusting a directory name.
+- `nvim/AstroNvim/v6/setup` backs up existing `~/.config/nvim`, clones the current template, and symlinks this repo's plugins. Ask before running it because it mutates the user's home config.
+
+## Laptop Setup Preferences
+
+- Ask which applications the laptop should have before installing anything. Offer all known apps selected by default, but call out work-specific apps such as Slack and allow deselection.
+- Prefer Homebrew for installations and install latest stable releases unless explicitly pinned.
+- Favor agent-executable written instructions over opaque setup scripts; scripts remain supported fallbacks.
+- Preserve the aliases `vim=nvim`, `mux=tmuxinator`, and `oc=opencode` in future summaries and setups.
+- Use SSH commit signing rather than GPG signing.
 
 ## Dotfile Safety
 
 - Prefer editing repo files over mutating `$HOME`; install/setup snippets in README files often create symlinks or change shell config.
+- Never symlink or overwrite `~/.zshenv`. `zsh/zshenv` is a secrets-free starter copy; the live file stays local and may contain secrets.
 - Do not normalize all config files to one style. This repo intentionally mixes TOML, YAML, Lua, shell, and terminal/window-manager config formats.
 - Existing contribution guidance says PRs target `dev` and commit messages use prefixes like `feat:`, `fix:`, `refactor:`, `docs:`, and `lint:`.

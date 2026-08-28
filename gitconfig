@@ -1,13 +1,17 @@
 [user]
     email = roerohan@gmail.com
     name = Rohan Mukherjee
-    signingkey = 4E979C9B37364374
+    signingkey = ~/.ssh/id_ed25519.pub
 [includeIf "gitdir:~/Documents/Repos/dyte/"]
     path = ~/.gitconfig-dyte
 [url "git@github.com:"]
     insteadOf = https://github.com/
 [commit]
     gpgsign = true
+[gpg]
+    format = ssh
+[gpg "ssh"]
+    allowedSignersFile = ~/.ssh/allowed_signers
 [push]
     autoSetupRemote = true
 [init]
