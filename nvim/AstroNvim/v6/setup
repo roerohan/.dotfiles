@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -euo pipefail
+
+PLUGIN_DIR="$(cd "$(dirname "$0")" && pwd)/plugins"
+BACKUP_SUFFIX="backup-$(date +%Y%m%d-%H%M%S)"
+
+for dir in "$HOME/.config/nvim" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim" "$HOME/.cache/nvim"; do
+  if [ -e "$dir" ]; then
+    mv "$dir" "${dir}-${BACKUP_SUFFIX}"
+  fi
+done
+
+git clone --depth 1 https://github.com/AstroNvim/template.git "$HOME/.config/nvim"
+rm -rf "$HOME/.config/nvim/lua/plugins"
+ln -s "$PLUGIN_DIR" "$HOME/.config/nvim/lua/plugins"

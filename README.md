@@ -10,7 +10,7 @@
   <h3 align="center">.dotfiles</h3>
 
   <p align="center">
-    Configuration files for my Linux system.
+    Configuration files for macOS and Linux systems.
     <br />
     <a href="https://github.com/roerohan/.dotfiles"><strong>Explore the docs »</strong></a>
     <br />
@@ -43,7 +43,9 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repository consists of configuration files for my Linux system.
+This repository consists of configuration files for my macOS and Linux systems.
+
+For a new Mac, use the agent-executable [`MACOS_SETUP.md`](MACOS_SETUP.md) runbook. It is the primary setup path; historical scripts remain fallbacks.
 
 <!-- GETTING STARTED -->
 ## Getting Started

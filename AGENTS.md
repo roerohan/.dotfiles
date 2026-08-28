@@ -16,7 +16,8 @@
 
 - OpenCode deps live in `opencode/`: run `npm install` there if changing `opencode/package.json` or plugin dependencies.
 - Sandbox OpenCode config sync lives at `sbx/opencode-config/sync.sh`; run it before `sbx run` when config changes need to be copied into the sandbox.
-- Neovim setup entrypoint is `nvim/setup`, which delegates to `nvim/AstroNvim/v4/setup`.
+- The agent-first macOS runbook is `MACOS_SETUP.md`. Follow it instead of guessing from historical scripts or the stale root README.
+- Neovim setup entrypoint is `nvim/setup`, which delegates to `nvim/AstroNvim/v6/setup`.
 
 ## OpenCode Config
 
@@ -27,9 +28,17 @@
 
 ## Neovim
 
-- AstroNvim has historical `v2/`, `v3/`, and current `v4/` directories; `nvim/setup` uses `v4`.
-- Many `nvim/AstroNvim/v4/plugins/*.lua` files are disabled templates when they start with `if true then return {} end`; do not assume those settings are active.
-- `nvim/AstroNvim/v4/setup` moves existing `~/.config/nvim` to a random backup name, clones AstroNvim template, then symlinks this repo's `plugins` directory. Ask before running it; it mutates the user's home config.
+- AstroNvim has historical `v2/`, `v3/`, and `v4/` directories; current config lives under `v6/`.
+- Check AstroNvim upstream before future installs and use the latest stable major rather than trusting a directory name.
+- `nvim/AstroNvim/v6/setup` backs up existing `~/.config/nvim`, clones the current template, and symlinks this repo's plugins. Ask before running it because it mutates the user's home config.
+
+## Laptop Setup Preferences
+
+- Ask which applications the laptop should have before installing anything. Offer all known apps selected by default, but call out work-specific apps such as Slack and allow deselection.
+- Prefer Homebrew for installations and install latest stable releases unless explicitly pinned.
+- Favor agent-executable written instructions over opaque setup scripts; scripts remain supported fallbacks.
+- Preserve the aliases `vim=nvim`, `mux=tmuxinator`, and `oc=opencode` in future summaries and setups.
+- Use SSH commit signing rather than GPG signing.
 
 ## Dotfile Safety
 

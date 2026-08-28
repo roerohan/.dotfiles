@@ -1,4 +1,5 @@
-theme = light:Rose Pine Dawn,dark:Rose Pine
+theme = Rose Pine
+font-family = JetBrainsMono Nerd Font Mono
 window-inherit-font-size = true
 window-decoration = false
 shell-integration-features = no-title

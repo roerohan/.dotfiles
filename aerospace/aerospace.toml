@@ -196,6 +196,14 @@ if.app-id = 'com.mitchellh.ghostty'
 run = 'move-node-to-workspace 2'
 
 [[on-window-detected]]
+if.app-id = 'com.t3tools.t3code'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.openai.codex'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
 if.app-id = 'com.exafunction.windsurf'
 run = 'move-node-to-workspace 2'
 
